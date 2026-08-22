@@ -32,9 +32,6 @@ test JSONFormatter {
     const source: [:0]const u8 = "const x: u32 = 1;";
     const src = try Source.fromString(allocator, @constCast(source), "test.zig");
 
-    var buf = std.array_list.Managed(u8).init(allocator);
-    defer buf.deinit();
-
     var err = Error{
         .code = "code",
         .message = .static("oof"),
@@ -49,10 +46,11 @@ test JSONFormatter {
     });
 
     var f = JSONFormatter{};
-    var w = buf.writer().any();
-    try f.format(&w, err);
+    var w = io.Writer.Allocating.init(allocator);
+    defer w.deinit();
+    try f.format(&w.writer, err);
 
-    var value = try json.parseFromSlice(json.Value, allocator, buf.items, .{});
+    var value = try json.parseFromSlice(json.Value, allocator, w.writer.buffered(), .{});
     defer value.deinit();
     const obj = value.value.object;
 
@@ -71,7 +69,6 @@ test JSONFormatter {
 
 const std = @import("std");
 const io = std.Io;
-const Cow = @import("util").Cow(false);
 const formatter = @import("../formatter.zig");
 const Meta = formatter.Meta;
 const FormatError = formatter.FormatError;

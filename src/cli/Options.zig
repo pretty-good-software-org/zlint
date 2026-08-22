@@ -13,6 +13,13 @@ quiet: bool = false,
 ///
 /// This is primarily for debugging purposes.
 print_ast: bool = false,
+/// Instead of linting a file, print its control flow graph as Graphviz DOT
+/// to stdout.
+///
+/// This is primarily for debugging purposes.
+print_cfg: bool = false,
+/// Include top-level decl initializer containers in `--print-cfg` output.
+cfg_decls: bool = false,
 /// How diagnostics are formatted.
 format: formatter.Kind = .graphical,
 /// Print a summary about # of warnings and errors. Only applies for some formats.
@@ -25,14 +32,21 @@ fix: bool = false,
 /// Like `--fix`, but also enable potentially dangerous fixes.
 fix_dangerously: bool = false,
 /// Positional arguments
-args: std.ArrayListUnmanaged([]const u8) = .empty,
+args: std.ArrayList([]const u8) = .empty,
 
 pub const usage =
     \\Usage: zlint [options] [<dirs>]
+    \\       zlint update
 ;
 const help =
+    \\Commands:
+    \\  update             Download and install the latest stable release
+    \\
+    \\Options:
     \\--print-ast <file>  Parse a file and print its AST as JSON
-    \\-f, --format <fmt>  Choose an output format (default, graphical, json, github, gh)
+    \\--print-cfg <file>  Analyze a file and print its control flow graph as Graphviz DOT
+    \\--cfg-decls         Include top-level decl initializers in --print-cfg output
+    \\-f, --format <fmt>  Choose an output format (default, graphical, ascii, json, github, gh)
     \\--no-summary        Do not print a summary after linting
     \\-S, --stdin         Lint filepaths received from stdin (newline separated)
     \\--fix               Apply automatic fixes where possible
@@ -53,7 +67,7 @@ const ParseError = error{
 pub fn parseArgv(alloc: Allocator, io: std.Io, args: std.process.Args, err: ?*Error) ParseError!Options {
     // NOTE: on most platforms this does not actually allocate memory; only
     // Windows and WASI need the allocator to decode the command line.
-    var argv = std.process.Args.Iterator.initAllocator(args, alloc) catch return error.OutOfMemory;
+    var argv = try std.process.Args.Iterator.initAllocator(args, alloc);
     defer argv.deinit();
     return parse(alloc, io, argv, err);
 }
@@ -104,6 +118,10 @@ fn parse(alloc: Allocator, io: std.Io, args_iter: anytype, err: ?*Error) ParseEr
             opts.summary = false;
         } else if (eq(arg, "--print-ast")) {
             opts.print_ast = true;
+        } else if (eq(arg, "--print-cfg")) {
+            opts.print_cfg = true;
+        } else if (eq(arg, "--cfg-decls")) {
+            opts.cfg_decls = true;
         } else if (eq(arg, "-h") or eq(arg, "--help") or eq(arg, "--hlep") or eq(arg, "-help")) {
             var buf: [512]u8 = undefined;
             var writer = std.Io.File.stdout().writer(io, &buf);
@@ -136,14 +154,14 @@ inline fn eq(arg: anytype, name: @TypeOf(arg)) bool {
     return std.mem.eql(u8, arg, name);
 }
 // TODO: comptime string concat on format names
-const FORMAT_NAMES: []const u8 = "default, graphical, github, gh";
+const FORMAT_NAMES: []const u8 = "default, graphical, ascii, json, github, gh";
 
 const Options = @This();
 const std = @import("std");
 const util = @import("util");
 const Allocator = std.mem.Allocator;
-const formatter = @import("../reporter.zig").formatter;
-const Error = @import("../Error.zig");
+const formatter = @import("zlint").report.formatter;
+const Error = @import("zlint").Error;
 
 const t = std.testing;
 
@@ -153,11 +171,11 @@ test parse {
 
     const src_list: List = brk: {
         const items = &[_][]const u8{"src"};
-        break :brk List{ .items = @constCast(items) };
+        break :brk List{ .items = @constCast(items), .capacity = items.len };
     };
     const src_test_list: List = brk: {
         const items = &[_][]const u8{ "src", "test" };
-        break :brk List{ .items = @constCast(items) };
+        break :brk List{ .items = @constCast(items), .capacity = items.len };
     };
 
     const test_cases = [_]Case{
@@ -165,6 +183,10 @@ test parse {
         .{ "zlint", .{} },
         .{ "zlint --", .{} },
         .{ "zlint --print-ast", .{ .print_ast = true } },
+        .{ "zlint --print-cfg", .{ .print_cfg = true } },
+        .{ "zlint --cfg-decls", .{ .cfg_decls = true } },
+        .{ "zlint --print-cfg --cfg-decls", .{ .print_cfg = true, .cfg_decls = true } },
+        .{ "zlint --print-cfg src", .{ .print_cfg = true, .args = src_list } },
         .{ "zlint --fix", .{ .fix = true } },
         .{ "zlint --no-summary", .{ .summary = false } },
         .{ "zlint --verbose", .{ .verbose = true } },
@@ -184,8 +206,15 @@ test parse {
         var opts = try parse(t.allocator, t.io, argv, null);
         defer opts.deinit(t.allocator);
 
-        try t.expectEqual(expected.verbose, opts.verbose);
-        try t.expectEqual(expected.print_ast, opts.print_ast);
+        // Reflective so a newly added option is covered the moment it exists.
+        inline for (@typeInfo(Options).@"struct".fields) |field| {
+            if (comptime std.mem.eql(u8, field.name, "args")) continue;
+            t.expectEqual(@field(expected, field.name), @field(opts, field.name)) catch |e| {
+                std.debug.print("^ field '{s}' of `{s}`\n", .{ field.name, test_case[0] });
+                return e;
+            };
+        }
+
         try t.expectEqual(expected.args.items.len, opts.args.items.len);
         for (0..expected.args.items.len) |i| {
             try t.expectEqualStrings(
@@ -205,4 +234,11 @@ test "invalid --format" {
         parse(t.allocator, t.io, argv, &err),
     );
     try t.expect(std.mem.indexOf(u8, err.message.borrow(), "Invalid format name") != null);
+}
+
+test "ascii format" {
+    const argv = std.mem.splitScalar(u8, "zlint --format ascii", ' ');
+    var opts = try parse(t.allocator, t.io, argv, null);
+    defer opts.deinit(t.allocator);
+    try t.expectEqual(formatter.Kind.ascii, opts.format);
 }

@@ -7,10 +7,10 @@ const Allocator = mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
 const Io = std.Io;
 const Dir = Io.Dir;
-const lint = @import("../lint.zig");
+const lint = @import("zlint").lint;
 const Cow = util.Cow(false);
-const Error = @import("../Error.zig");
-const Span = @import("../span.zig").Span;
+const Error = @import("zlint").Error;
+const Span = @import("zlint").span.Span;
 
 /// Resolve the lint configuration, walking up the directory tree from `cwd`
 /// looking for `config_filename`.
@@ -317,10 +317,10 @@ test resolveLintConfig {
     try t.expect(err == null);
     try t.expect(config.path != null);
 
-    const expected_path = try path.resolve(t.allocator, &.{"zlint/test/fixtures/config/zlint.json"});
+    const expected_path = try path.join(t.allocator, &.{ fixtures_dir, "zlint.json" });
     defer t.allocator.free(expected_path);
 
-    try t.expectStringEndsWith(config.path.?, expected_path);
+    try t.expectEqualStrings(expected_path, config.path.?);
     try t.expectEqual(.warning, config.config.rules.rules.unsafe_undefined.severity);
 }
 
@@ -328,7 +328,7 @@ test resolveLintConfig {
 // zlint.json produced a label span past the end of the (empty) source, which
 // caused a `u32` underflow panic when the graphical formatter rendered it.
 test "resolveLintConfig with an empty zlint.json does not crash the formatter" {
-    const GraphicalFormatter = @import("../reporter.zig").formatter.Graphical;
+    const GraphicalFormatter = @import("zlint").report.formatter.Graphical;
 
     const cwd = Dir.cwd();
     const fixtures_dir = try cwd.realPathFileAlloc(t.io, "test/fixtures/config-empty", t.allocator);
@@ -352,7 +352,7 @@ test "resolveLintConfig with an empty zlint.json does not crash the formatter" {
 
     try t.expectEqual(0, err.source.?.deref().*.len);
     try t.expectEqual(1, err.labels.items.len);
-    try t.expectEqual(.empty, err.labels.items[0].span);
+    try t.expectEqual(Span.empty, err.labels.items[0].span);
 
     var fmt = GraphicalFormatter.unicode(t.allocator, false);
     var w = std.Io.Writer.Allocating.init(t.allocator);

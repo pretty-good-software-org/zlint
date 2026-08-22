@@ -114,7 +114,7 @@ fn printReference(self: *SemanticPrinter, ref_id: Reference.Id) !void {
     const tags = ast.nodes.items(.tag);
 
     const flag_fields = std.meta.fields(Reference.Flags);
-    var buf: [flag_fields.len * @sizeOf([]const u8)]u8 = undefined;
+    var buf: [flag_fields.len * @sizeOf([]const u8) + @alignOf([]const u8) - 1]u8 = undefined;
     var fixed_alloc = std.heap.FixedBufferAllocator.init(&buf);
     const alloc = fixed_alloc.allocator();
     var flags = std.array_list.Managed([]const u8).init(alloc);
@@ -139,7 +139,7 @@ fn printReference(self: *SemanticPrinter, ref_id: Reference.Id) !void {
 }
 
 pub fn printScopeTree(self: *SemanticPrinter) !void {
-    return self.printScope(&self.semantic.scopes.getScope(Semantic.ROOT_SCOPE_ID));
+    return self.printScope(&self.semantic.scopes.getScope(.root));
 }
 
 fn printScope(self: *SemanticPrinter, scope: *const Semantic.Scope) !void {
