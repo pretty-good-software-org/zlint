@@ -67,11 +67,15 @@ all default rules, only enabling the ones you choose.
 }
 ```
 
-The organization fork also enables the `max-lines-per-function` style rule:
+The organization fork also enables file and function size rules:
 
 ```json
 {
   "rules": {
+    "max-lines": [
+      "error",
+      { "max": 250, "skip_blank_lines": true, "skip_comments": true }
+    ],
     "max-lines-per-function": [
       "error",
       { "max": 60, "skip_blank_lines": true, "skip_comments": true }
