@@ -25,6 +25,7 @@ pub fn build(b: *std.Build) void {
     ) orelse &.{
         b.path("rules/max_lines.zig"),
         b.path("rules/max_lines_per_function.zig"),
+        b.path("rules/max_params.zig"),
     };
 
     var l = Linker.init(b);
