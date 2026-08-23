@@ -259,7 +259,7 @@ pub const Diagnostic = struct {
     pub const List = std.array_list.Managed(Diagnostic);
 };
 
-const Context = @This();
+pub const Context = @This();
 
 const std = @import("std");
 const mem = std.mem;

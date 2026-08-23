@@ -15,7 +15,7 @@ fmt: GraphicalFormatter,
 
 alloc: Allocator,
 
-const RuleTester = @This();
+pub const RuleTester = @This();
 
 const SNAPSHOT_DIR = "src/linter/rules/snapshots";
 
