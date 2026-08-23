@@ -91,6 +91,17 @@
                 }
             ]
         },
+        "complexity": {
+            "type": "object",
+            "title": "complexity config",
+            "properties": {
+                "max": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                }
+            }
+        },
         "linter.config.rules_config.RulesConfig": {
             "type": "object",
             "description": "Configure which rules are enabled and how.",
@@ -240,6 +251,26 @@
                                 },
                                 {
                                     "$ref": "#/definitions/max_lines"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "complexity": {
+                    "default": "off",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/complexity"
                                 }
                             ]
                         }

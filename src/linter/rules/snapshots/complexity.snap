@@ -1,0 +1,11 @@
+  𝙭 complexity: function has complexity 4; maximum is 3.
+   ╭─[complexity.zig:1:1]
+ 1 │ ╭─▶ fn tooComplex(first: bool, second: bool, third: bool) void {
+ 2 │ │       if (first) {
+ 3 │ │           if (second) {
+ 4 │ │               if (third) return;
+ 5 │ │           }
+ 6 │ │       }
+ 7 │ ╰─▶ }
+   ╰────
+
