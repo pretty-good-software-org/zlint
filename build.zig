@@ -22,7 +22,7 @@ pub fn build(b: *std.Build) void {
         []const Build.LazyPath,
         "custom_rules",
         "comma separated list of custom rule files. See https://donisaac.github.io/zlint/docs/configuration/custom-rules",
-    ) orelse &.{};
+    ) orelse &.{b.path("rules/max_lines_per_function.zig")};
 
     var l = Linker.init(b);
     defer l.deinit();

@@ -67,6 +67,19 @@ all default rules, only enabling the ones you choose.
 }
 ```
 
+The organization fork also enables the `max-lines-per-function` style rule:
+
+```json
+{
+  "rules": {
+    "max-lines-per-function": [
+      "error",
+      { "max": 60, "skip_blank_lines": true, "skip_comments": true }
+    ]
+  }
+}
+```
+
 ZLint also supports [ESLint-like disable directives](https://eslint.org/docs/latest/use/configure/rules#comment-descriptions) to turn off some or all rules for a specific file.
 
 ```zig
