@@ -29,6 +29,7 @@ pub const all: []const type = blk: {
 /// `RulesConfig.Rules`, which are snake_case.
 pub fn snakeName(comptime RuleImpl: type) [:0]const u8 {
     comptime {
+        @setEvalBranchQuota(10_000);
         var name: [RuleImpl.meta.name.len]u8 = undefined;
         @memcpy(&name, RuleImpl.meta.name);
         std.mem.replaceScalar(u8, &name, '-', '_');
