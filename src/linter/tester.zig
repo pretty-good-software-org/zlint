@@ -14,6 +14,7 @@ diagnostic: TestDiagnostic = .{},
 fmt: GraphicalFormatter,
 
 alloc: Allocator,
+snapshot_dir: []const u8 = SNAPSHOT_DIR,
 
 pub const RuleTester = @This();
 
@@ -73,6 +74,11 @@ pub fn setFileName(self: *RuleTester, filename: []const u8) void {
     self.filename = self.alloc.dupe(u8, filename) catch |e| {
         panic("Failed to allocate for filename {s}: {s}", .{ filename, @errorName(e) });
     };
+}
+
+pub fn withSnapshotDir(self: *RuleTester, snapshot_dir: []const u8) *RuleTester {
+    self.snapshot_dir = snapshot_dir;
+    return self;
 }
 
 pub fn withPath(self: *RuleTester, source_dir: []const u8) *RuleTester {
@@ -325,8 +331,12 @@ fn lint(
 fn saveSnapshot(self: *RuleTester) SnapshotError!void {
     const io = std.testing.io;
     const snapshot_file: Io.File = brk: {
-        var snapshot_dir = Io.Dir.cwd().createDirPathOpen(io, SNAPSHOT_DIR, .{}) catch |e| {
-            self.diagnostic.message = Cow.static("Failed to open snapshot directory '" ++ SNAPSHOT_DIR ++ "'");
+        var snapshot_dir = Io.Dir.cwd().createDirPathOpen(io, self.snapshot_dir, .{}) catch |e| {
+            self.diagnostic.message = Cow.fmt(
+                self.alloc,
+                "Failed to open snapshot directory '{s}'",
+                .{self.snapshot_dir},
+            ) catch return e;
             return e;
         };
         defer snapshot_dir.close(io);
