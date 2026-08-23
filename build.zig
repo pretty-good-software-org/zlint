@@ -26,6 +26,7 @@ pub fn build(b: *std.Build) void {
         b.path("rules/max_lines.zig"),
         b.path("rules/max_lines_per_function.zig"),
         b.path("rules/max_params.zig"),
+        b.path("rules/max_depth.zig"),
     };
 
     var l = Linker.init(b);

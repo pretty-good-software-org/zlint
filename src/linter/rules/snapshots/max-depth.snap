@@ -1,0 +1,8 @@
+  𝙭 max-depth: control-flow nesting depth is 3; maximum is 2.
+   ╭─[max-depth.zig:4:13]
+ 3 │         if (second) {
+ 4 │             if (third) return;
+   ·             ─────────────────
+ 5 │         }
+   ╰────
+

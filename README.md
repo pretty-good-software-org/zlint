@@ -80,7 +80,8 @@ The organization fork also enables file and function size rules:
       "error",
       { "max": 60, "skip_blank_lines": true, "skip_comments": true }
     ],
-    "max-params": ["error", { "max": 4 }]
+    "max-params": ["error", { "max": 4 }],
+    "max-depth": ["error", { "max": 4 }]
   }
 }
 ```

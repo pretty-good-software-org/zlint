@@ -205,6 +205,26 @@
                         }
                     ]
                 },
+                "max-depth": {
+                    "default": "off",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/max_depth"
+                                }
+                            ]
+                        }
+                    ]
+                },
                 "max-lines": {
                     "default": "off",
                     "oneOf": [
@@ -585,6 +605,17 @@
             "type": "object",
             "title": "empty-file config",
             "properties": {}
+        },
+        "max_depth": {
+            "type": "object",
+            "title": "max-depth config",
+            "properties": {
+                "max": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                }
+            }
         },
         "linter.rules.case_convention": {
             "type": "object",
