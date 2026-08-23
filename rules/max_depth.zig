@@ -22,14 +22,18 @@ pub fn runOnNode(self: *const MaxDepth, wrapper: NodeWrapper, ctx: *LinterContex
     if (!isDepthNode(wrapper.node.tag)) return;
 
     var depth: u32 = 0;
+    var in_function = false;
     var parents = ctx.links().iterParentIds(wrapper.idx);
     while (parents.next()) |parent| {
         const tag = ctx.ast().nodeTag(parent);
-        if (tag == .fn_decl) break;
+        if (tag == .fn_decl) {
+            in_function = true;
+            break;
+        }
         if (isDepthNode(tag)) depth += 1;
     }
 
-    if (depth <= self.max) return;
+    if (!in_function or depth <= self.max) return;
 
     ctx.report(ctx.diagnosticf(
         "control-flow nesting depth is {}; maximum is {}.",
@@ -70,6 +74,8 @@ test "rule reports control flow over the limit" {
         \\        if (second) return;
         \\    }
         \\}
+        ,
+        \\const value = if (true) 1 else 2;
     };
     const fail = &[_][:0]const u8{
         \\fn tooDeep(first: bool, second: bool, third: bool) void {
