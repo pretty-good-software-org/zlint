@@ -63,10 +63,14 @@ pub fn lintFile(self: *LintService, filepath: []u8) void {
 fn tryLintFile(self: *LintService, filepath: []u8) !void {
     const file = Io.Dir.cwd().openFile(self.io, filepath, .{}) catch |e| {
         self.allocator.free(filepath);
+        self.reporter.stats.recordFailure();
         return e;
     };
 
-    var source = try Source.init(self.allocator, self.io, file, filepath);
+    var source = Source.init(self.allocator, self.io, file, filepath) catch |e| {
+        self.reporter.stats.recordFailure();
+        return e;
+    };
     defer source.deinit();
     var errors: ?std.array_list.Managed(Error) = null;
 
@@ -74,7 +78,7 @@ fn tryLintFile(self: *LintService, filepath: []u8) !void {
         if (errors) |e| {
             try self.reporter.reportErrors(e);
         } else {
-            _ = self.reporter.stats.num_errors.fetchAdd(1, .acquire);
+            self.reporter.stats.recordFailure();
         }
         return err;
     };
