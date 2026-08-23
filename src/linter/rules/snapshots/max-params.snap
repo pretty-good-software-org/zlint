@@ -1,0 +1,7 @@
+  𝙭 max-params: function has 3 parameters; maximum is 2.
+   ╭─[max-params.zig:1:1]
+ 1 │ ╭─▶ fn tooMany(first: u32, second: u32, third: u32) void {
+ 2 │ │       _ = first + second + third;
+ 3 │ ╰─▶ }
+   ╰────
+

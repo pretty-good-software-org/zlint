@@ -79,7 +79,8 @@ The organization fork also enables file and function size rules:
     "max-lines-per-function": [
       "error",
       { "max": 60, "skip_blank_lines": true, "skip_comments": true }
-    ]
+    ],
+    "max-params": ["error", { "max": 4 }]
   }
 }
 ```
