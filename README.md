@@ -82,7 +82,7 @@ The organization fork also enables file and function size rules:
     ],
     "max-params": ["error", { "max": 4 }],
     "max-depth": ["error", { "max": 4 }],
-    "complexity": ["error", 15]
+    "complexity": ["error", { "max": 15 }]
   }
 }
 ```
