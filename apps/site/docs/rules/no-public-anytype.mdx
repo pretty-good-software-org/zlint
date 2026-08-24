@@ -1,0 +1,102 @@
+---
+rule: '{"name":"no-public-anytype","category":"restriction","default":"off","fix":{"kind":"none","dangerous":false}}'
+---
+
+# `no-public-anytype`
+
+<RuleBanner category="restriction" default="off" />
+
+## What This Rule Does
+
+Disallows `anytype` parameters on functions that are part of a module's
+public API.
+
+`anytype` erases the parameter from the function's signature. Callers cannot
+tell what they are allowed to pass, generated documentation shows no type,
+and a change to what the body requires of the argument breaks downstream
+code without changing the declaration. Inside a module that cost is cheap:
+every call site is in front of you. Across a module boundary it is paid by
+people who cannot see the body.
+
+Most `anytype` parameters in public APIs have a concrete replacement:
+a `comptime T: type` parameter plus a parameter of that type states the same
+generic contract while keeping it visible in the signature.
+
+### What Counts As Public
+
+A function is treated as public API when it is declared `pub` or `export`
+**and** every declaration enclosing it is also `pub`. A `pub fn` inside a
+file-private container, or inside a container declared in a function body,
+cannot be named from another module, so it is left alone.
+
+```zig
+// not reported: `Impl` is file-private, so `Impl.run` is unreachable
+// from other modules.
+const Impl = struct {
+  pub fn run(x: anytype) void { _ = x; }
+};
+```
+
+### Allowed Scenarios
+
+C-variadic parameters (`...`) are not `anytype` and are never reported.
+
+Some `std` interfaces require an `anytype` parameter, so the functions that
+implement them cannot avoid one. `allowed_functions` lists function names
+that are exempt; it defaults to the `std` interface methods below.
+
+```json
+{
+  "rules": {
+    "no-public-anytype": [
+      "warn",
+      {
+        "allowed_functions": ["format", "jsonParse", "jsonParseFromValue", "jsonStringify"]
+      }
+    ]
+  }
+}
+```
+
+:::info
+Setting `allowed_functions` replaces the default list rather than adding to
+it. Repeat the defaults you want to keep.
+:::
+
+## Examples
+
+Examples of **incorrect** code for this rule:
+
+```zig
+pub fn add(a: anytype, b: anytype) @TypeOf(a, b) {
+  return a + b;
+}
+
+pub const Store = struct {
+  // `comptime` does not make the parameter any easier to call correctly.
+  pub fn put(self: *Store, key: []const u8, value: anytype) void {}
+};
+```
+
+Examples of **correct** code for this rule:
+
+```zig
+// The generic contract is still there, but it is written down.
+pub fn add(comptime T: type, a: T, b: T) T {
+  return a + b;
+}
+
+// Private functions may use `anytype` freely.
+fn debugPrint(value: anytype) void {}
+
+pub const Store = struct {
+  // `std` interfaces that mandate `anytype` are allowed by default.
+  pub fn jsonStringify(self: Store, jws: anytype) !void {}
+};
+```
+
+## Configuration
+
+This rule accepts the following options:
+
+- allowed_functions: array

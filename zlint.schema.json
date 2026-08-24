@@ -494,8 +494,10 @@
                         }
                     ]
                 },
-                "max-lines-per-function": {
+                "no-public-anytype": {
+                    "description": "## What This Rule Does\n\nDisallows `anytype` parameters on functions that are part of a module's\npublic API.\n\n`anytype` erases the parameter from the function's signature. Callers cannot\ntell what they are allowed to pass, generated documentation shows no type,\nand a change to what the body requires of the argument breaks downstream\ncode without changing the declaration. Inside a module that cost is cheap:\nevery call site is in front of you. Across a module boundary it is paid by\npeople who cannot see the body.\n\nMost `anytype` parameters in public APIs have a concrete replacement:\na `comptime T: type` parameter plus a parameter of that type states the same\ngeneric contract while keeping it visible in the signature.\n\n### What Counts As Public\n\nA function is treated as public API when it is declared `pub` or `export`\n**and** every declaration enclosing it is also `pub`. A `pub fn` inside a\nfile-private container, or inside a container declared in a function body,\ncannot be named from another module, so it is left alone.\n\n```zig\n// not reported: `Impl` is file-private, so `Impl.run` is unreachable\n// from other modules.\nconst Impl = struct {\n  pub fn run(x: anytype) void { _ = x; }\n};\n```\n\n### Allowed Scenarios\n\nC-variadic parameters (`...`) are not `anytype` and are never reported.\n\nSome `std` interfaces require an `anytype` parameter, so the functions that\nimplement them cannot avoid one. `allowed_functions` lists function names\nthat are exempt; it defaults to the `std` interface methods below.\n\n```json\n{\n  \"rules\": {\n    \"no-public-anytype\": [\"warn\", {\n      \"allowed_functions\": [\"format\", \"jsonParse\", \"jsonParseFromValue\", \"jsonStringify\"]\n    }]\n  }\n}\n```\n\n:::info\nSetting `allowed_functions` replaces the default list rather than adding to\nit. Repeat the defaults you want to keep.\n:::\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\npub fn add(a: anytype, b: anytype) @TypeOf(a, b) {\n  return a + b;\n}\n\npub const Store = struct {\n  // `comptime` does not make the parameter any easier to call correctly.\n  pub fn put(self: *Store, key: []const u8, value: anytype) void {}\n};\n```\n\nExamples of **correct** code for this rule:\n```zig\n// The generic contract is still there, but it is written down.\npub fn add(comptime T: type, a: T, b: T) T {\n  return a + b;\n}\n\n// Private functions may use `anytype` freely.\nfn debugPrint(value: anytype) void {}\n\npub const Store = struct {\n  // `std` interfaces that mandate `anytype` are allowed by default.\n  pub fn jsonStringify(self: Store, jws: anytype) !void {}\n};\n```",
                     "default": "off",
+                    "markdownDescription": "## What This Rule Does\n\nDisallows `anytype` parameters on functions that are part of a module's\npublic API.\n\n`anytype` erases the parameter from the function's signature. Callers cannot\ntell what they are allowed to pass, generated documentation shows no type,\nand a change to what the body requires of the argument breaks downstream\ncode without changing the declaration. Inside a module that cost is cheap:\nevery call site is in front of you. Across a module boundary it is paid by\npeople who cannot see the body.\n\nMost `anytype` parameters in public APIs have a concrete replacement:\na `comptime T: type` parameter plus a parameter of that type states the same\ngeneric contract while keeping it visible in the signature.\n\n### What Counts As Public\n\nA function is treated as public API when it is declared `pub` or `export`\n**and** every declaration enclosing it is also `pub`. A `pub fn` inside a\nfile-private container, or inside a container declared in a function body,\ncannot be named from another module, so it is left alone.\n\n```zig\n// not reported: `Impl` is file-private, so `Impl.run` is unreachable\n// from other modules.\nconst Impl = struct {\n  pub fn run(x: anytype) void { _ = x; }\n};\n```\n\n### Allowed Scenarios\n\nC-variadic parameters (`...`) are not `anytype` and are never reported.\n\nSome `std` interfaces require an `anytype` parameter, so the functions that\nimplement them cannot avoid one. `allowed_functions` lists function names\nthat are exempt; it defaults to the `std` interface methods below.\n\n```json\n{\n  \"rules\": {\n    \"no-public-anytype\": [\"warn\", {\n      \"allowed_functions\": [\"format\", \"jsonParse\", \"jsonParseFromValue\", \"jsonStringify\"]\n    }]\n  }\n}\n```\n\n:::info\nSetting `allowed_functions` replaces the default list rather than adding to\nit. Repeat the defaults you want to keep.\n:::\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\npub fn add(a: anytype, b: anytype) @TypeOf(a, b) {\n  return a + b;\n}\n\npub const Store = struct {\n  // `comptime` does not make the parameter any easier to call correctly.\n  pub fn put(self: *Store, key: []const u8, value: anytype) void {}\n};\n```\n\nExamples of **correct** code for this rule:\n```zig\n// The generic contract is still there, but it is written down.\npub fn add(comptime T: type, a: T, b: T) T {\n  return a + b;\n}\n\n// Private functions may use `anytype` freely.\nfn debugPrint(value: anytype) void {}\n\npub const Store = struct {\n  // `std` interfaces that mandate `anytype` are allowed by default.\n  pub fn jsonStringify(self: Store, jws: anytype) !void {}\n};\n```",
                     "oneOf": [
                         {
                             "$ref": "#/definitions/Error.Severity"
@@ -508,7 +510,7 @@
                                     "$ref": "#/definitions/Error.Severity"
                                 },
                                 {
-                                    "$ref": "#/definitions/max_lines_per_function"
+                                    "$ref": "#/definitions/linter.rules.no_public_anytype"
                                 }
                             ]
                         }
@@ -536,6 +538,26 @@
                         }
                     ]
                 },
+                "max-lines-per-function": {
+                    "default": "off",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/max_lines_per_function"
+                                }
+                            ]
+                        }
+                    ]
+                },
                 "must-return-ref": {
                     "description": "## What This Rule Does\nDisallows returning copies of types that store a `capacity`.\n\nZig does not have move semantics. Returning a value by value copies it.\nReturning a copy of a struct's field that records how much memory it has\nallocated can easily lead to memory leaks.\n\n```zig\nconst std = @import(\"std\");\npub const Foo = struct {\n  list: std.array_list.Managed(u32),\n  pub fn getList(self: *Foo) std.array_list.Managed(u32) {\n      return self.list;\n  }\n};\n\npub fn main() !void {\n  var foo: Foo = .{\n    .list = try std.array_list.Managed(u32).init(std.heap.page_allocator)\n  };\n  defer foo.list.deinit();\n  var list = foo.getList();\n  try list.append(1); // leaked!\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(self: *Foo) std.array_list.Managed(u32) {\n  return self.list;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\n// pass by reference\nfn foo(self: *Foo) *std.array_list.Managed(u32) {\n  return &self.list;\n}\n\n// new instances are fine\nfn foo() ArenaAllocator {\n  return std.mem.ArenaAllocator.init(std.heap.page_allocator);\n}\n```",
                     "default": "warn",
@@ -557,6 +579,24 @@
                             ]
                         }
                     ]
+                }
+            }
+        },
+        "linter.rules.no_public_anytype": {
+            "type": "object",
+            "title": "no-public-anytype config",
+            "properties": {
+                "allowed_functions": {
+                    "type": "array",
+                    "default": [
+                        "format",
+                        "jsonParse",
+                        "jsonParseFromValue",
+                        "jsonStringify"
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
