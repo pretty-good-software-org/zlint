@@ -83,6 +83,30 @@
   help: Drop the `else` and un-indent its body.
 
   𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (c) {
+ 3 │         @compileError("nope");
+   ·         ──────────┬──────────
+   ·                   ╰── the `if` branch always exits here
+ 4 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (c) {
+ 3 │         @trap();
+   ·         ───┬───
+   ·            ╰── the `if` branch always exits here
+ 4 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
    ╭─[no-else-after-return.zig:4:13]
  3 │         if (d) {
  4 │             return 1;

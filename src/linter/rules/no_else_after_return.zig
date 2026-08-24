@@ -588,9 +588,26 @@ test NoElseAfterReturn {
         \\    }
         \\}
         ,
+        // every builtin in `noreturn_builtins` ends a branch
         \\fn foo(c: bool) void {
         \\    if (c) {
         \\        @panic("nope");
+        \\    } else {
+        \\        bar();
+        \\    }
+        \\}
+        ,
+        \\fn foo(comptime c: bool) void {
+        \\    if (c) {
+        \\        @compileError("nope");
+        \\    } else {
+        \\        bar();
+        \\    }
+        \\}
+        ,
+        \\fn foo(c: bool) void {
+        \\    if (c) {
+        \\        @trap();
         \\    } else {
         \\        bar();
         \\    }
