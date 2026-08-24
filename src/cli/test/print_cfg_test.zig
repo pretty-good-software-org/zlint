@@ -49,13 +49,11 @@ test "printCfg --cfg-decls includes decl initializer containers" {
     try t.expect(std.mem.indexOf(u8, with, "decl x") != null);
 }
 
-// The stderr diagnostic this prints is expected: `printCfg` reports parse
-// errors with `std.debug.print`.
-test "printCfg writes no graph for a file that fails to parse" {
+test "printCfg reports parse errors through the supplied writer" {
     var arena = std.heap.ArenaAllocator.init(t.allocator);
     defer arena.deinit();
 
     const dot = try printCfg(arena.allocator(), .{ .print_cfg = true }, "pub fn f( {");
 
-    try t.expectEqualStrings("", dot);
+    try t.expectEqualStrings("expected type expression, found '{'\n", dot);
 }
