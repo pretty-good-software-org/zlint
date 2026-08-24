@@ -27,9 +27,7 @@ pub fn parseAndPrint(alloc: Allocator, io_: io, opts: Options, source: Source, w
     var sema_result = try builder.build(source.text());
     defer sema_result.deinit();
     if (sema_result.hasErrors()) {
-        for (sema_result.errors.items) |err| {
-            std.debug.print("{s}\n", .{err.message.str});
-        }
+        try reportSemanticErrors(sema_result.errors.items, writer_);
         return;
     }
     const sema = &sema_result.value;
@@ -58,6 +56,16 @@ pub fn parseAndPrint(alloc: Allocator, io_: io, opts: Options, source: Source, w
     try semantic_printer.printModuleRecord();
 }
 
+fn reportSemanticErrors(errors: anytype, writer_: ?*io.Writer) !void {
+    for (errors) |err| {
+        if (writer_) |writer| {
+            try writer.print("{s}\n", .{err.message.str});
+        } else {
+            std.debug.print("{s}\n", .{err.message.str});
+        }
+    }
+}
+
 /// Borrows source. Analyzes the file and writes its control flow graph as
 /// Graphviz DOT.
 pub fn printCfg(alloc: Allocator, io_: io, opts: Options, source: Source, writer_: ?*io.Writer) !void {
@@ -68,9 +76,7 @@ pub fn printCfg(alloc: Allocator, io_: io, opts: Options, source: Source, writer
     var sema_result = try builder.build(source.text());
     defer sema_result.deinit();
     if (sema_result.hasErrors()) {
-        for (sema_result.errors.items) |err| {
-            std.debug.print("{s}\n", .{err.message.str});
-        }
+        try reportSemanticErrors(sema_result.errors.items, writer_);
         return;
     }
 
