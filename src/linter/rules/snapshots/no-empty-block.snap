@@ -1,0 +1,136 @@
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:2:3]
+ 1 │ fn foo() void {
+ 2 │   {}
+   ·   ─┬─
+   ·    ╰── no code ever runs here
+ 3 │ }
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:2:3]
+ 1 │ fn foo() void {
+ 2 │   blk: {}
+   ·   ───┬───
+   ·      ╰── no code ever runs here
+ 3 │ }
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:2:13]
+ 1 │ fn foo(cond: bool) void {
+ 2 │   if (cond) {}
+   ·             ─┬─
+   ·              ╰── no code ever runs here
+ 3 │ }
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:4:10]
+ 3 │     noop();
+ 4 │   } else {}
+   ·          ─┬─
+   ·           ╰── no code ever runs here
+ 5 │ }
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:2:16]
+ 1 │ fn foo(cond: bool) void {
+ 2 │   while (cond) {}
+   ·                ─┬─
+   ·                 ╰── no code ever runs here
+ 3 │ }
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:2:16]
+ 1 │ fn foo(cond: bool) void {
+ 2 │   while (cond) {} // spin
+   ·                ─┬─
+   ·                 ╰── no code ever runs here
+ 3 │ }
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:2:19]
+ 1 │ fn foo(items: []const u8) void {
+ 2 │   for (items) |_| {}
+   ·                   ─┬─
+   ·                    ╰── no code ever runs here
+ 3 │ }
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:2:9]
+ 1 │ fn foo() void {
+ 2 │   defer {}
+   ·         ─┬─
+   ·          ╰── no code ever runs here
+ 3 │ }
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:2:12]
+ 1 │ fn foo() !void {
+ 2 │   errdefer {}
+   ·            ─┬─
+   ·             ╰── no code ever runs here
+ 3 │   return error.Foo;
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:1:10]
+ 1 │ comptime {}
+   ·          ─┬─
+   ·           ╰── no code ever runs here
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:1:21]
+ 1 │ test "does nothing" {}
+   ·                     ─┬─
+   ·                      ╰── no code ever runs here
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:3:5]
+ 2 │   if (cond) {
+ 3 │     {}
+   ·     ─┬─
+   ·      ╰── no code ever runs here
+ 4 │   }
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:4:17]
+ 3 │     else => {
+ 4 │       if (cond) {}
+   ·                 ─┬─
+   ·                  ╰── no code ever runs here
+ 5 │     },
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+
+  𝙭 no-empty-block: This block is empty
+   ╭─[no-empty-block.zig:3:15]
+ 2 │   bar() catch {
+ 3 │     if (cond) {}
+   ·               ─┬─
+   ·                ╰── no code ever runs here
+ 4 │   };
+   ╰────
+  help: Remove it, or leave a comment saying why it is empty on purpose.
+

@@ -538,6 +538,28 @@
                         }
                     ]
                 },
+                "no-empty-block": {
+                    "description": "## What This Rule Does\nChecks for blocks that contain no statements.\n\nAn empty block runs no code. It is nearly always either debris left behind\nwhen its contents were deleted or a branch someone meant to come back and\nfill in. Either way the next reader has to stop and work out whether the\nemptiness was deliberate.\n\n### Blocks This Rule Ignores\nOnly blocks in statement position are reported: standalone blocks, branch\nand loop bodies, `defer` and `errdefer` bodies, `comptime` blocks, and test\nbodies. Everywhere else an empty pair of braces is the void value rather\nthan a block that runs no code, so it is left alone.\n\n```zig\nfn foo(fixes: []Fix) void {\n    std.sort.insertion(Fix, fixes, {}, lessThan);\n}\n```\n\nTwo more positions require a block, and an empty one there is the normal\nway to say \"do nothing\":\n\n- Function bodies. `fn noop() void {}` is a legitimate stub.\n- Switch prongs. `else => {}` is the only way to give a prong no body.\n\nSwallowed errors such as `foo() catch {}` are reported by the\n`suppressed-errors` rule instead, which knows when suppression is\nacceptable.\n\nA block is also ignored when a comment sits between its braces. Use one to\nrecord why the block is deliberately empty. A comment trailing the closing\nbrace does not count, since it reads as a note on the whole statement.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(cond: bool) void {\n    if (cond) {}\n\n    while (cond) {}\n\n    defer {}\n\n    {}\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn noop() void {}\n\nfn foo(tag: u8, queue: *Queue) void {\n    switch (tag) {\n        1 => noop(),\n        else => {},\n    }\n\n    while (queue.pop()) |_| {\n        // drain whatever is left over\n    }\n}\n```",
+                    "default": "off",
+                    "markdownDescription": "## What This Rule Does\nChecks for blocks that contain no statements.\n\nAn empty block runs no code. It is nearly always either debris left behind\nwhen its contents were deleted or a branch someone meant to come back and\nfill in. Either way the next reader has to stop and work out whether the\nemptiness was deliberate.\n\n### Blocks This Rule Ignores\nOnly blocks in statement position are reported: standalone blocks, branch\nand loop bodies, `defer` and `errdefer` bodies, `comptime` blocks, and test\nbodies. Everywhere else an empty pair of braces is the void value rather\nthan a block that runs no code, so it is left alone.\n\n```zig\nfn foo(fixes: []Fix) void {\n    std.sort.insertion(Fix, fixes, {}, lessThan);\n}\n```\n\nTwo more positions require a block, and an empty one there is the normal\nway to say \"do nothing\":\n\n- Function bodies. `fn noop() void {}` is a legitimate stub.\n- Switch prongs. `else => {}` is the only way to give a prong no body.\n\nSwallowed errors such as `foo() catch {}` are reported by the\n`suppressed-errors` rule instead, which knows when suppression is\nacceptable.\n\nA block is also ignored when a comment sits between its braces. Use one to\nrecord why the block is deliberately empty. A comment trailing the closing\nbrace does not count, since it reads as a note on the whole statement.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(cond: bool) void {\n    if (cond) {}\n\n    while (cond) {}\n\n    defer {}\n\n    {}\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn noop() void {}\n\nfn foo(tag: u8, queue: *Queue) void {\n    switch (tag) {\n        1 => noop(),\n        else => {},\n    }\n\n    while (queue.pop()) |_| {\n        // drain whatever is left over\n    }\n}\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.no_empty_block"
+                                }
+                            ]
+                        }
+                    ]
+                },
                 "duplicate-case": {
                     "description": "## What This Rule Does\nChecks for duplicate cases in switch statements.\n\nThis rule identifies when switch statements have case branches that could\nbe merged together without affecting program behavior. It does _not_ check\nthat the value being switched over is the same; rather it checks whether\nthe target expressions are duplicates.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo() void {\n  const x = switch (1) {\n    1 => 1,\n    else => 1,\n  };\n}\n\nfn bar(y: u32) void {\n  const x = switch (y) {\n    1 => y + 1,\n    2 => 1 + y,\n    else => y * 2,\n  };\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn foo() void {\n  const x = switch (1) {\n    1 => 1,\n    2 => 2,\n  };\n}\n\nfn bar(y: u32) void {\n  const x = switch (y) {\n    1 => y + 1,\n    2 => y * 2,\n    3 => y - 1,\n  };\n}\n```",
                     "default": "off",
@@ -674,6 +696,11 @@
                 "source",
                 "forbidden"
             ]
+        },
+        "linter.rules.no_empty_block": {
+            "type": "object",
+            "title": "no-empty-block config",
+            "properties": {}
         },
         "complexity": {
             "type": "object",
