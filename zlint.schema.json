@@ -18,25 +18,6 @@
     },
     "$schema": "https://json-schema.org/draft-07/schema#",
     "definitions": {
-        "max_lines_per_function": {
-            "type": "object",
-            "title": "max-lines-per-function config",
-            "properties": {
-                "skip_blank_lines": {
-                    "type": "boolean",
-                    "default": true
-                },
-                "skip_comments": {
-                    "type": "boolean",
-                    "default": true
-                },
-                "max": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 4294967295
-                }
-            }
-        },
         "linter.rules.allocator_first_param": {
             "type": "object",
             "title": "allocator-first-param config",
@@ -50,57 +31,10 @@
                 }
             }
         },
-        "linter.rules.avoid_as": {
-            "type": "object",
-            "title": "avoid-as config",
-            "properties": {}
-        },
-        "linter.rules.suppressed_errors": {
-            "type": "object",
-            "title": "suppressed-errors config",
-            "properties": {}
-        },
         "linter.rules.unused_decls": {
             "type": "object",
             "title": "unused-decls config",
             "properties": {}
-        },
-        "linter.rules.useless_error_return": {
-            "type": "object",
-            "title": "useless-error-return config",
-            "properties": {}
-        },
-        "Error.Severity": {
-            "title": "Severity",
-            "description": "Set the error level of a rule. 'off' and 'allow' do the same thing.",
-            "oneOf": [
-                {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 2
-                },
-                {
-                    "type": "string",
-                    "enum": [
-                        "off",
-                        "deny",
-                        "warn",
-                        "error",
-                        "allow"
-                    ]
-                }
-            ]
-        },
-        "complexity": {
-            "type": "object",
-            "title": "complexity config",
-            "properties": {
-                "max": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 4294967295
-                }
-            }
         },
         "linter.config.rules_config.RulesConfig": {
             "type": "object",
@@ -558,6 +492,28 @@
                         }
                     ]
                 },
+                "forbidden-imports": {
+                    "description": "## What This Rule Does\nRestricts imports between source-path patterns.\n\nThis rule is intended for project architecture boundaries. Each boundary\napplies when the importing file matches `source` and the imported `.zig`\nfile matches one of the `forbidden` patterns.\n\n```json\n{\n  \"rules\": {\n    \"forbidden-imports\": [\"error\", {\n      \"rules\": [\n        {\n          \"source\": \"src/ui/**\",\n          \"forbidden\": [\"src/database/**\"]\n        }\n      ]\n    }]\n  }\n}\n```\n\nPatterns are resolved relative to the current working directory. Build\nprovided module imports such as `@import(\"database\")` are ignored because\ntheir source path is not available to a source-level rule.",
+                    "default": "off",
+                    "markdownDescription": "## What This Rule Does\nRestricts imports between source-path patterns.\n\nThis rule is intended for project architecture boundaries. Each boundary\napplies when the importing file matches `source` and the imported `.zig`\nfile matches one of the `forbidden` patterns.\n\n```json\n{\n  \"rules\": {\n    \"forbidden-imports\": [\"error\", {\n      \"rules\": [\n        {\n          \"source\": \"src/ui/**\",\n          \"forbidden\": [\"src/database/**\"]\n        }\n      ]\n    }]\n  }\n}\n```\n\nPatterns are resolved relative to the current working directory. Build\nprovided module imports such as `@import(\"database\")` are ignored because\ntheir source path is not available to a source-level rule.",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.forbidden_imports"
+                                }
+                            ]
+                        }
+                    ]
+                },
                 "must-return-ref": {
                     "description": "## What This Rule Does\nDisallows returning copies of types that store a `capacity`.\n\nZig does not have move semantics. Returning a value by value copies it.\nReturning a copy of a struct's field that records how much memory it has\nallocated can easily lead to memory leaks.\n\n```zig\nconst std = @import(\"std\");\npub const Foo = struct {\n  list: std.array_list.Managed(u32),\n  pub fn getList(self: *Foo) std.array_list.Managed(u32) {\n      return self.list;\n  }\n};\n\npub fn main() !void {\n  var foo: Foo = .{\n    .list = try std.array_list.Managed(u32).init(std.heap.page_allocator)\n  };\n  defer foo.list.deinit();\n  var list = foo.getList();\n  try list.append(1); // leaked!\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(self: *Foo) std.array_list.Managed(u32) {\n  return self.list;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\n// pass by reference\nfn foo(self: *Foo) *std.array_list.Managed(u32) {\n  return &self.list;\n}\n\n// new instances are fine\nfn foo() ArenaAllocator {\n  return std.mem.ArenaAllocator.init(std.heap.page_allocator);\n}\n```",
                     "default": "warn",
@@ -579,6 +535,48 @@
                             ]
                         }
                     ]
+                }
+            }
+        },
+        "linter.rules.forbidden_imports": {
+            "type": "object",
+            "title": "forbidden-imports config",
+            "properties": {
+                "rules": {
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "$ref": "#/definitions/linter.rules.forbidden_imports.Boundary"
+                    }
+                }
+            }
+        },
+        "linter.rules.forbidden_imports.Boundary": {
+            "type": "object",
+            "properties": {
+                "source": {
+                    "type": "string"
+                },
+                "forbidden": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "source",
+                "forbidden"
+            ]
+        },
+        "complexity": {
+            "type": "object",
+            "title": "complexity config",
+            "properties": {
+                "max": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
                 }
             }
         },
@@ -637,17 +635,6 @@
             "title": "empty-file config",
             "properties": {}
         },
-        "max_depth": {
-            "type": "object",
-            "title": "max-depth config",
-            "properties": {
-                "max": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 4294967295
-                }
-            }
-        },
         "linter.rules.case_convention": {
             "type": "object",
             "title": "case-convention config",
@@ -658,16 +645,19 @@
             "title": "must-return-ref config",
             "properties": {}
         },
-        "linter.rules.no_catch_return": {
+        "max_lines_per_function": {
             "type": "object",
-            "title": "no-catch-return config",
-            "properties": {}
-        },
-        "linter.rules.line_length": {
-            "type": "object",
-            "title": "line-length config",
+            "title": "max-lines-per-function config",
             "properties": {
-                "max_length": {
+                "skip_blank_lines": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "skip_comments": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "max": {
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 4294967295
@@ -688,6 +678,69 @@
             "type": "object",
             "title": "returned-stack-reference config",
             "properties": {}
+        },
+        "linter.rules.avoid_as": {
+            "type": "object",
+            "title": "avoid-as config",
+            "properties": {}
+        },
+        "linter.rules.suppressed_errors": {
+            "type": "object",
+            "title": "suppressed-errors config",
+            "properties": {}
+        },
+        "linter.rules.useless_error_return": {
+            "type": "object",
+            "title": "useless-error-return config",
+            "properties": {}
+        },
+        "Error.Severity": {
+            "title": "Severity",
+            "description": "Set the error level of a rule. 'off' and 'allow' do the same thing.",
+            "oneOf": [
+                {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2
+                },
+                {
+                    "type": "string",
+                    "enum": [
+                        "off",
+                        "deny",
+                        "warn",
+                        "error",
+                        "allow"
+                    ]
+                }
+            ]
+        },
+        "max_depth": {
+            "type": "object",
+            "title": "max-depth config",
+            "properties": {
+                "max": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                }
+            }
+        },
+        "linter.rules.no_catch_return": {
+            "type": "object",
+            "title": "no-catch-return config",
+            "properties": {}
+        },
+        "linter.rules.line_length": {
+            "type": "object",
+            "title": "line-length config",
+            "properties": {
+                "max_length": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                }
+            }
         },
         "linter.rules.unsafe_undefined": {
             "type": "object",

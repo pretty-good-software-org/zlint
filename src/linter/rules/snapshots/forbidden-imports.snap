@@ -1,0 +1,7 @@
+  𝙭 forbidden-imports: Import violates forbidden-imports boundary: src/features/ui/view.zig imports src/database/store.zig
+   ╭─[src/features/ui/view.zig:1:19]
+ 1 │ const x = @import("../../database/store.zig");
+   ·                   ─────────────┬─────────────
+   ·                                ╰── forbidden import
+   ╰────
+
