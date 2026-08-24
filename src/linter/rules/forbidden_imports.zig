@@ -7,14 +7,16 @@
 //!
 //! ```json
 //! {
-//!   "forbidden-imports": ["error", {
-//!     "rules": [
-//!       {
-//!         "source": "src/ui/**",
-//!         "forbidden": ["src/database/**"]
-//!       }
-//!     ]
-//!   }]
+//!   "rules": {
+//!     "forbidden-imports": ["error", {
+//!       "rules": [
+//!         {
+//!           "source": "src/ui/**",
+//!           "forbidden": ["src/database/**"]
+//!         }
+//!       ]
+//!     }]
+//!   }
 //! }
 //! ```
 //!
@@ -52,7 +54,16 @@ pub fn runOnNode(self: *const ForbiddenImports, wrapper: NodeWrapper, ctx: *Lint
     const argument = node.data.opt_node_and_opt_node[0].unwrap() orelse return;
     if (ast.nodeTag(argument) != .string_literal) return;
 
-    const specifier = std.mem.trim(u8, ctx.semantic.tokenSlice(ast.nodeMainToken(argument)), "\"");
+    const raw_specifier = ctx.semantic.tokenSlice(ast.nodeMainToken(argument));
+    const specifier = std.zig.string_literal.parseAlloc(ctx.gpa, raw_specifier) catch |err| {
+        ctx.report(ctx.diagnosticf(
+            "Failed to decode import path: {s}",
+            .{@errorName(err)},
+            .{ctx.labelN(argument, "invalid import path", .{})},
+        ));
+        return;
+    };
+    defer ctx.gpa.free(specifier);
     if (!isFileImport(specifier)) return;
 
     const importer = path.resolve(ctx.gpa, &.{source_path}) catch @panic("Failed to resolve importer path");
@@ -168,6 +179,7 @@ test ForbiddenImports {
         })
         .withFail(&[_][:0]const u8{
             "const db = @import(\"../database/store.zig\");",
+            \\const db = @import("../\x64atabase/store.zig");
         })
         .run();
 }
