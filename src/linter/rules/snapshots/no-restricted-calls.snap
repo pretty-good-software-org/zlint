@@ -1,0 +1,90 @@
+  𝙭 no-restricted-calls: Calls to `std.process.exit` are not allowed.
+   ╭─[no-restricted-calls.zig:3:3]
+ 2 │ fn foo() void {
+ 3 │   std.process.exit(1);
+   ·   ────────┬────────
+   ·           ╰── this call path is restricted
+ 4 │ }
+   ╰────
+  help: Remove this call, or drop the path from `no-restricted-calls` if it should be allowed.
+
+  𝙭 no-restricted-calls: Calls to `std.process.exit` are not allowed.
+   ╭─[no-restricted-calls.zig:3:3]
+ 2 │ fn foo() void {
+ 3 │   std.process.exit();
+   ·   ────────┬────────
+   ·           ╰── this call path is restricted
+ 4 │ }
+   ╰────
+  help: Remove this call, or drop the path from `no-restricted-calls` if it should be allowed.
+
+  𝙭 no-restricted-calls: Calls to `std.time.sleep` are not allowed.
+   ╭─[no-restricted-calls.zig:3:3]
+ 2 │ fn foo() void {
+ 3 │   std.time.sleep(1, 2);
+   ·   ───────┬───────
+   ·          ╰── this call path is restricted
+ 4 │   std.time.sleep(
+   ╰────
+  help: Remove this call, or drop the path from `no-restricted-calls` if it should be allowed.
+
+  𝙭 no-restricted-calls: Calls to `std.time.sleep` are not allowed.
+   ╭─[no-restricted-calls.zig:4:3]
+ 3 │   std.time.sleep(1, 2);
+ 4 │   std.time.sleep(
+   ·   ───────┬───────
+   ·          ╰── this call path is restricted
+ 5 │     1,
+   ╰────
+  help: Remove this call, or drop the path from `no-restricted-calls` if it should be allowed.
+
+  𝙭 no-restricted-calls: Calls to `std.process.exit` are not allowed.
+   ╭─[no-restricted-calls.zig:4:3]
+ 3 │ fn foo() void {
+ 4 │   process.exit(1);
+   ·   ──────┬──────
+   ·         ╰── this call path is restricted
+ 5 │ }
+   ╰────
+  help: Remove this call, or drop the path from `no-restricted-calls` if it should be allowed.
+
+  𝙭 no-restricted-calls: Calls to `std.process.exit` are not allowed.
+   ╭─[no-restricted-calls.zig:4:3]
+ 3 │ fn foo() void {
+ 4 │   quit(1);
+   ·   ──┬──
+   ·     ╰── this call path is restricted
+ 5 │ }
+   ╰────
+  help: Remove this call, or drop the path from `no-restricted-calls` if it should be allowed.
+
+  𝙭 no-restricted-calls: Calls to `std.process.exit` are not allowed.
+   ╭─[no-restricted-calls.zig:5:3]
+ 4 │ fn foo() void {
+ 5 │   quit(1);
+   ·   ──┬──
+   ·     ╰── this call path is restricted
+ 6 │ }
+   ╰────
+  help: Remove this call, or drop the path from `no-restricted-calls` if it should be allowed.
+
+  𝙭 no-restricted-calls: Calls to `std.process.exit` are not allowed.
+   ╭─[no-restricted-calls.zig:2:3]
+ 1 │ fn foo() void {
+ 2 │   @import("std").process.exit(1);
+   ·   ─────────────┬─────────────
+   ·                ╰── this call path is restricted
+ 3 │ }
+   ╰────
+  help: Remove this call, or drop the path from `no-restricted-calls` if it should be allowed.
+
+  𝙭 no-restricted-calls: Calls to `exit` are not allowed.
+   ╭─[no-restricted-calls.zig:2:3]
+ 1 │ fn foo() void {
+ 2 │   exit(1);
+   ·   ──┬──
+   ·     ╰── this call path is restricted
+ 3 │ }
+   ╰────
+  help: Remove this call, or drop the path from `no-restricted-calls` if it should be allowed.
+

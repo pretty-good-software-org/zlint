@@ -106,6 +106,28 @@
                         }
                     ]
                 },
+                "no-restricted-calls": {
+                    "description": "## What This Rule Does\nDisallows calls to function paths listed in this rule's configuration.\n\nThis rule ships with an empty list, so it reports nothing until you\nconfigure it. It is a policy hook, not an opinion about which functions are\ndangerous: teams use it to ban whatever their codebase should not call, such\nas a process-killing helper in library code or a deprecated internal API.\n\n### Configuration\n`paths` holds the call paths to restrict, written the way they are spelled\nat the call site after aliases are followed.\n\n```json\n{\n  \"rules\": {\n    \"no-restricted-calls\": [\"error\", {\n      \"paths\": [\"std.process.exit\", \"std.time.sleep\"]\n    }]\n  }\n}\n```\n\n### How Call Paths Are Resolved\nA call's path is built from the identifiers in its callee expression, joined\nwith `.`. `std.process.exit(1)` has the path `std.process.exit`, and\n`exit(1)` has the path `exit`.\n\nBefore comparing, `const` aliases are followed to what they were declared\nas, so all three calls below have the path `std.process.exit`:\n\n```zig\nconst std = @import(\"std\");\nconst process = std.process;\nconst exit = std.process.exit;\n\nfn quit() void {\n    std.process.exit(1);\n    process.exit(1);\n    exit(1);\n}\n```\n\nAn alias only resolves when it is in scope, so anything that shadows it —\na parameter, a local, an inner declaration — keeps the name it was written\nwith.\n\n:::info\nPaths are matched literally and in full, segment for segment. There is no\nwildcard or glob syntax, so `std.*` restricts a function literally named `*`\nand matches nothing in practice, and restricting `std.debug` does not\nrestrict `std.debug.print`.\n:::\n\n### Limitations\nZLint has no type checker, so this rule reasons about names alone. Calls\nwhose callee is not a plain dotted path are never reported, which covers\nmethod calls on values (`list.append(x)`), calls on the result of another\ncall (`gpa.allocator().free(p)`), and builtins (`@panic(\"...\")`).\n\n`@import` is followed only for module names, so `@import(\"std\").process.exit(1)`\nresolves to `std.process.exit`, while imports of a file path do not resolve.\n\n## Examples\n\nExamples of **incorrect** code for this rule, given\n`{ \"paths\": [\"std.process.exit\"] }`:\n```zig\nconst std = @import(\"std\");\nfn quit() void {\n    std.process.exit(1);\n}\n```\n\n```zig\nconst std = @import(\"std\");\nconst exit = std.process.exit;\nfn quit() void {\n    exit(1);\n}\n```\n\nExamples of **correct** code for this rule, given the same configuration:\n```zig\nconst std = @import(\"std\");\nfn quit() !void {\n    // referencing a restricted path without calling it is allowed\n    const exit = std.process.exit;\n    _ = exit;\n    return error.Quit;\n}\n```\n\n```zig\nconst std = @import(\"std\");\nconst process = std.process;\n\n// the parameter shadows the alias, so this path is `process.exit`\nfn quit(process: Process) void {\n    process.exit(1);\n}\n```",
+                    "default": "off",
+                    "markdownDescription": "## What This Rule Does\nDisallows calls to function paths listed in this rule's configuration.\n\nThis rule ships with an empty list, so it reports nothing until you\nconfigure it. It is a policy hook, not an opinion about which functions are\ndangerous: teams use it to ban whatever their codebase should not call, such\nas a process-killing helper in library code or a deprecated internal API.\n\n### Configuration\n`paths` holds the call paths to restrict, written the way they are spelled\nat the call site after aliases are followed.\n\n```json\n{\n  \"rules\": {\n    \"no-restricted-calls\": [\"error\", {\n      \"paths\": [\"std.process.exit\", \"std.time.sleep\"]\n    }]\n  }\n}\n```\n\n### How Call Paths Are Resolved\nA call's path is built from the identifiers in its callee expression, joined\nwith `.`. `std.process.exit(1)` has the path `std.process.exit`, and\n`exit(1)` has the path `exit`.\n\nBefore comparing, `const` aliases are followed to what they were declared\nas, so all three calls below have the path `std.process.exit`:\n\n```zig\nconst std = @import(\"std\");\nconst process = std.process;\nconst exit = std.process.exit;\n\nfn quit() void {\n    std.process.exit(1);\n    process.exit(1);\n    exit(1);\n}\n```\n\nAn alias only resolves when it is in scope, so anything that shadows it —\na parameter, a local, an inner declaration — keeps the name it was written\nwith.\n\n:::info\nPaths are matched literally and in full, segment for segment. There is no\nwildcard or glob syntax, so `std.*` restricts a function literally named `*`\nand matches nothing in practice, and restricting `std.debug` does not\nrestrict `std.debug.print`.\n:::\n\n### Limitations\nZLint has no type checker, so this rule reasons about names alone. Calls\nwhose callee is not a plain dotted path are never reported, which covers\nmethod calls on values (`list.append(x)`), calls on the result of another\ncall (`gpa.allocator().free(p)`), and builtins (`@panic(\"...\")`).\n\n`@import` is followed only for module names, so `@import(\"std\").process.exit(1)`\nresolves to `std.process.exit`, while imports of a file path do not resolve.\n\n## Examples\n\nExamples of **incorrect** code for this rule, given\n`{ \"paths\": [\"std.process.exit\"] }`:\n```zig\nconst std = @import(\"std\");\nfn quit() void {\n    std.process.exit(1);\n}\n```\n\n```zig\nconst std = @import(\"std\");\nconst exit = std.process.exit;\nfn quit() void {\n    exit(1);\n}\n```\n\nExamples of **correct** code for this rule, given the same configuration:\n```zig\nconst std = @import(\"std\");\nfn quit() !void {\n    // referencing a restricted path without calling it is allowed\n    const exit = std.process.exit;\n    _ = exit;\n    return error.Quit;\n}\n```\n\n```zig\nconst std = @import(\"std\");\nconst process = std.process;\n\n// the parameter shadows the alias, so this path is `process.exit`\nfn quit(process: Process) void {\n    process.exit(1);\n}\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.no_restricted_calls"
+                                }
+                            ]
+                        }
+                    ]
+                },
                 "useless-error-return": {
                     "description": "## What This Rule Does\n\nDetects functions that have an error union return type but never actually return an error.\nThis can happen in two ways:\n1. The function never returns an error value\n2. The function catches all errors internally and never propagates them to the caller\n\nHaving an error union return type when errors are never returned makes the code less clear\nand forces callers to handle errors that will never occur.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\n// Function declares error return but only returns void\nfn foo() !void {\n    return;\n}\n\n// Function catches all errors internally\npub fn init(allocator: std.mem.Allocator) !Foo {\n    const new = allocator.create(Foo) catch @panic(\"OOM\");\n    new.* = .{};\n    return new;\n}\n\n// Function only returns success value\nfn bar() !void {\n    const e = baz();\n    return e;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\n// Function properly propagates errors\nfn foo() !void {\n    return error.Oops;\n}\n\n// Function returns result of fallible operation\nfn bar() !void {\n    return baz();\n}\n\n// Function propagates caught errors\nfn qux() !void {\n    bar() catch |e| return e;\n}\n\n// Function with conditional error return\nfn check(x: bool) !void {\n    return if (x) error.Invalid else {};\n}\n\n// Empty error set is explicitly allowed\nfn noErrors() error{}!void {}\n```",
                     "default": "off",
@@ -736,6 +758,19 @@
                     ]
                 }
             ]
+        },
+        "linter.rules.no_restricted_calls": {
+            "type": "object",
+            "title": "no-restricted-calls config",
+            "properties": {
+                "paths": {
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
         },
         "linter.rules.no_public_mutable_global": {
             "type": "object",
