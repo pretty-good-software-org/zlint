@@ -63,6 +63,24 @@ pub fn rule(self: *MaxDepth) Rule {
     return Rule.init(self);
 }
 
+test "rule covers each supported nesting construct" {
+    var rule_instance = MaxDepth{ .max = 0 };
+    var tester = zlint.linter.tester.RuleTester.init(std.testing.allocator, rule_instance.rule());
+    defer tester.deinit();
+
+    const pass = &[_][:0]const u8{
+        \\const value = if (true) 1 else 2;
+        \\fn independent() void {}
+    };
+    const fail = &[_][:0]const u8{
+        \\fn nestedIf(value: bool) void { if (value) { while (value) break; } }
+        \\fn nestedFor(value: bool) void { for ([_]u8{1}) |_| { if (value) {} } }
+        \\fn nestedSwitch(value: u8) void { if (value > 0) { switch (value) { else => {} } } }
+    };
+
+    try tester.withPass(pass).withFail(fail).run();
+}
+
 test "rule reports control flow over the limit" {
     var rule_instance = MaxDepth{ .max = 2 };
     var tester = zlint.linter.tester.RuleTester.init(std.testing.allocator, rule_instance.rule());

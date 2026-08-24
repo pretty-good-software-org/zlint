@@ -24,18 +24,22 @@ pub fn runOnNode(self: *const MaxLinesPerFunction, wrapper: NodeWrapper, ctx: *L
 
     const span = ctx.semantic.nodeSpan(wrapper.idx);
     const source = ctx.source.text()[span.start..span.end];
-    const line_count = countLines(source, .{
+    const lines = countLines(source, .{
         .skip_blank_lines = self.skip_blank_lines,
         .skip_comments = self.skip_comments,
     });
 
-    if (line_count <= self.max) return;
+    if (lines <= self.max) return;
 
     ctx.report(ctx.diagnosticf(
         "function is {} lines long; maximum is {}.",
-        .{ line_count, self.max },
+        .{ lines, self.max },
         .{ctx.spanN(wrapper.idx)},
     ));
+}
+
+pub fn rule(self: *MaxLinesPerFunction) Rule {
+    return Rule.init(self);
 }
 
 const CountOptions = struct {
@@ -45,18 +49,63 @@ const CountOptions = struct {
 
 fn countLines(source: []const u8, options: CountOptions) u32 {
     var count: u32 = 0;
+    var block_comment_depth: u32 = 0;
     var lines = std.mem.splitScalar(u8, source, '\n');
     while (lines.next()) |line| {
-        const trimmed = std.mem.trim(u8, line, " \t\r");
-        if (options.skip_blank_lines and trimmed.len == 0) continue;
-        if (options.skip_comments and std.mem.startsWith(u8, trimmed, "//")) continue;
+        var has_non_whitespace = false;
+        var has_code = false;
+        var in_string: u8 = 0;
+        var escaped = false;
+        var i: usize = 0;
+        while (i < line.len) {
+            const current = line[i];
+            if (block_comment_depth > 0) {
+                if (i + 1 < line.len and current == '/' and line[i + 1] == '*') {
+                    block_comment_depth += 1;
+                    i += 2;
+                } else if (i + 1 < line.len and current == '*' and line[i + 1] == '/') {
+                    block_comment_depth -= 1;
+                    i += 2;
+                } else i += 1;
+                continue;
+            }
+            if (in_string != 0) {
+                has_non_whitespace = true;
+                if (escaped) escaped = false else if (current == '\\') escaped = true else if (current == in_string) in_string = 0;
+                i += 1;
+                continue;
+            }
+            if (current == '\\' and i + 1 < line.len and line[i + 1] == '\\') {
+                has_non_whitespace = true;
+                has_code = true;
+                break;
+            } else if (current == '"' or current == '\'') {
+                in_string = current;
+                has_non_whitespace = true;
+                has_code = true;
+                i += 1;
+            } else if (i + 1 < line.len and current == '/' and line[i + 1] == '/') {
+                has_non_whitespace = true;
+                break;
+            } else if (i + 1 < line.len and current == '/' and line[i + 1] == '*') {
+                has_non_whitespace = true;
+                block_comment_depth = 1;
+                i += 2;
+            } else {
+                if (!std.ascii.isWhitespace(current)) {
+                    has_non_whitespace = true;
+                    has_code = true;
+                }
+                i += 1;
+            }
+        }
+        const is_blank = !has_non_whitespace;
+        const is_comment_only = has_non_whitespace and !has_code;
+        if (is_blank and options.skip_blank_lines) continue;
+        if (is_comment_only and options.skip_comments) continue;
         count += 1;
     }
     return count;
-}
-
-pub fn rule(self: *MaxLinesPerFunction) Rule {
-    return Rule.init(self);
 }
 
 test "countLines skips blank lines and comments" {
@@ -75,6 +124,69 @@ test "countLines skips blank lines and comments" {
     try std.testing.expectEqual(@as(u32, 5), countLines(source, .{
         .skip_blank_lines = false,
         .skip_comments = false,
+    }));
+}
+
+test "countLines handles inline and multiline comments" {
+    const source =
+        \\fn example() void { // inline comment
+        \\    /* block comment
+        \\     * continues on another line
+        \\     */
+        \\    var value: u32 = 1;
+        \\}
+    ;
+
+    try std.testing.expectEqual(@as(u32, 3), countLines(source, .{
+        .skip_blank_lines = true,
+        .skip_comments = true,
+    }));
+}
+
+test "countLines handles CRLF line endings" {
+    const source = "fn example() void {\r\n    return;\r\n}\r\n";
+
+    try std.testing.expectEqual(@as(u32, 3), countLines(source, .{
+        .skip_blank_lines = true,
+        .skip_comments = true,
+    }));
+}
+
+test "countLines applies blank and comment options independently" {
+    const source =
+        \\fn example() void {
+        \\    var first: u8 = 1;
+        \\    // comment
+        \\
+        \\    var second: u8 = 2;
+        \\}
+    ;
+
+    try std.testing.expectEqual(@as(u32, 5), countLines(source, .{
+        .skip_blank_lines = true,
+        .skip_comments = false,
+    }));
+    try std.testing.expectEqual(@as(u32, 5), countLines(source, .{
+        .skip_blank_lines = false,
+        .skip_comments = true,
+    }));
+}
+
+test "countLines treats multiline string contents as code" {
+    const source =
+        \\fn example() void {
+        \\    const text =
+        \\\\    /*
+        \\\\    payload
+        \\\\    */
+        \\\\    ;
+        \\    const after: u8 = 1;
+        \\}
+    ;
+
+    try std.testing.expectEqual(@as(u32, 8), countLines(source, .{
+        .skip_blank_lines = true,
+        .skip_comments = true,
     }));
 }
 

@@ -209,6 +209,34 @@ test "rule counts switch arms after the first" {
     try tester.withPass(pass).withFail(fail).run();
 }
 
+test "rule isolates nested functions and ignores non-branches" {
+    var rule_instance = Complexity{ .max = 2 };
+    var tester = zlint.linter.tester.RuleTester.init(std.testing.allocator, rule_instance.rule());
+    defer tester.deinit();
+
+    const pass = &[_][:0]const u8{
+        \\fn outer() void { _ = null orelse 0; }
+        \\fn inner(value: bool) void { if (value) {} }
+        \\fn withNested(value: bool) void {
+        \\    const Container = struct {
+        \\        fn inner(inner_value: bool) void { if (inner_value) {} }
+        \\    };
+        \\    if (value) {}
+        \\    _ = Container;
+        \\}
+    };
+    const fail = &[_][:0]const u8{
+        \\fn outer(value: bool) void {
+        \\    if (value) {
+        \\        if (value) {}
+        \\    }
+        \\}
+        \\fn inner() void {}
+    };
+
+    try tester.withPass(pass).withFail(fail).run();
+}
+
 test "rule reports a function at zero limit" {
     var rule_instance = Complexity{ .max = 0 };
     var tester = zlint.linter.tester.RuleTester.init(std.testing.allocator, rule_instance.rule());
