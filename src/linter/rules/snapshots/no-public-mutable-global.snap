@@ -1,0 +1,109 @@
+  𝙭 no-public-mutable-global: global variable 'counter' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:1:9]
+ 1 │ pub var counter: u32 = 0;
+   ·         ───────
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'counter' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:1:9]
+ 1 │ pub var counter = 0;
+   ·         ───────
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'buf' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:1:9]
+ 1 │ pub var buf: [4]u8 = undefined;
+   ·         ───
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'shared_flag' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:1:12]
+ 1 │ export var shared_flag: bool = false;
+   ·            ───────────
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'shared_flag' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:1:16]
+ 1 │ pub export var shared_flag: bool = false;
+   ·                ───────────
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'request_id' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:1:21]
+ 1 │ pub threadlocal var request_id: u64 = 0;
+   ·                     ──────────
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'instances' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:2:13]
+ 1 │ pub const Registry = struct {
+ 2 │     pub var instances: u32 = 0;
+   ·             ─────────
+ 3 │ };
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'flag' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:3:17]
+ 2 │     pub const Inner = struct {
+ 3 │         pub var flag: bool = false;
+   ·                 ────
+ 4 │     };
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'hits' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:2:16]
+ 1 │ const Stats = struct {
+ 2 │     export var hits: u32 = 0;
+   ·                ────
+ 3 │ };
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'last' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:5:13]
+ 5 │     pub var last: u8 = 0;
+   ·             ────
+ 6 │ };
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'hits' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:3:17]
+ 2 │     return struct {
+ 3 │         pub var hits: u32 = 0;
+   ·                 ────
+ 4 │     };
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'aligned_counter' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:1:9]
+ 1 │ pub var aligned_counter: u32 align(16) = 0;
+   ·         ───────────────
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'counter' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:1:9]
+ 1 │ pub var counter: u32 = 0;
+   ·         ───────
+ 2 │ pub var gauge: u32 = 0;
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+
+  𝙭 no-public-mutable-global: global variable 'gauge' is mutable and visible outside this file.
+   ╭─[no-public-mutable-global.zig:2:9]
+ 1 │ pub var counter: u32 = 0;
+ 2 │ pub var gauge: u32 = 0;
+   ·         ─────
+   ╰────
+  help: Make it `const`, or keep it private and expose it through functions.
+

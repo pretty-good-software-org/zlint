@@ -252,6 +252,28 @@
                         }
                     ]
                 },
+                "no-public-mutable-global": {
+                    "description": "## What This Rule Does\n\nDisallows container-level `var` declarations that are reachable from outside\nthe file declaring them, either because they are `pub` or because they are\n`export`ed.\n\nContainer-level variables have static lifetime: exactly one of them exists\nfor the entire program. Publishing one lets every importer read and write it\nat any point, so its value depends on which code ran first, no caller can\nrely on it, and concurrent access is a data race unless every writer agrees\non a synchronization scheme that the type itself does not enforce.\n\n### What Counts As A Violation\n\nA declaration is reported when both of these hold:\n\n1. It is declared with `var`, not `const`.\n2. It is marked `pub`, or it is `export`ed. `export` publishes a linker\n   symbol that other objects can bind to, so it exposes the variable even\n   without `pub`.\n\nZig only accepts `pub`, `export`, and `threadlocal` on container-level\ndeclarations; inside a function body they are parse errors. Every reported\ndeclaration is therefore a global, wherever its container is written:\nat the top level of a file, inside a nested `struct`/`enum`/`union`, or\ninside a container declared in a function body.\n\n`pub threadlocal var` is reported as well. One instance per thread is still\nprocess-wide state that any importer can write, and its value depends on\nwhich thread happens to be running.\n\n### Allowed Scenarios\n\nThese are not reported:\n\n- Container-level `var`s that stay private to their file. They are still\n  global state, but this rule is about exposing it.\n- `pub const`, including `pub const` container types and their fields.\n  Fields are per-instance state, not globals.\n- Locals. A `var` inside a function or a `test` block is not global state.\n- `pub extern var`. The variable is defined by another translation unit\n  (usually C), so this file cannot make it `const`.\n\n:::warning\nZLint does not have a type checker, so a `pub const` bound to mutable memory\n(e.g. `pub const instance = &global_state;`) is not reported even though it\nalso hands out mutable global state.\n:::\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\npub var counter: u32 = 0;\n\n// `export` exposes the symbol to the linker, with or without `pub`.\nexport var shared_flag: bool = false;\n\n// Nested containers are globals too.\npub const Registry = struct {\n    pub var instances: u32 = 0;\n};\n```\n\nExamples of **correct** code for this rule:\n```zig\npub const max_connections: u32 = 100;\n\n// Keep the state private and let callers go through functions that can\n// enforce invariants.\nvar counter: u32 = 0;\npub fn increment() void {\n    counter += 1;\n}\npub fn count() u32 {\n    return counter;\n}\n\n// Defined by another translation unit, so this file cannot make it `const`.\npub extern var environ: [*]?[*:0]u8;\n```",
+                    "default": "warn",
+                    "markdownDescription": "## What This Rule Does\n\nDisallows container-level `var` declarations that are reachable from outside\nthe file declaring them, either because they are `pub` or because they are\n`export`ed.\n\nContainer-level variables have static lifetime: exactly one of them exists\nfor the entire program. Publishing one lets every importer read and write it\nat any point, so its value depends on which code ran first, no caller can\nrely on it, and concurrent access is a data race unless every writer agrees\non a synchronization scheme that the type itself does not enforce.\n\n### What Counts As A Violation\n\nA declaration is reported when both of these hold:\n\n1. It is declared with `var`, not `const`.\n2. It is marked `pub`, or it is `export`ed. `export` publishes a linker\n   symbol that other objects can bind to, so it exposes the variable even\n   without `pub`.\n\nZig only accepts `pub`, `export`, and `threadlocal` on container-level\ndeclarations; inside a function body they are parse errors. Every reported\ndeclaration is therefore a global, wherever its container is written:\nat the top level of a file, inside a nested `struct`/`enum`/`union`, or\ninside a container declared in a function body.\n\n`pub threadlocal var` is reported as well. One instance per thread is still\nprocess-wide state that any importer can write, and its value depends on\nwhich thread happens to be running.\n\n### Allowed Scenarios\n\nThese are not reported:\n\n- Container-level `var`s that stay private to their file. They are still\n  global state, but this rule is about exposing it.\n- `pub const`, including `pub const` container types and their fields.\n  Fields are per-instance state, not globals.\n- Locals. A `var` inside a function or a `test` block is not global state.\n- `pub extern var`. The variable is defined by another translation unit\n  (usually C), so this file cannot make it `const`.\n\n:::warning\nZLint does not have a type checker, so a `pub const` bound to mutable memory\n(e.g. `pub const instance = &global_state;`) is not reported even though it\nalso hands out mutable global state.\n:::\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\npub var counter: u32 = 0;\n\n// `export` exposes the symbol to the linker, with or without `pub`.\nexport var shared_flag: bool = false;\n\n// Nested containers are globals too.\npub const Registry = struct {\n    pub var instances: u32 = 0;\n};\n```\n\nExamples of **correct** code for this rule:\n```zig\npub const max_connections: u32 = 100;\n\n// Keep the state private and let callers go through functions that can\n// enforce invariants.\nvar counter: u32 = 0;\npub fn increment() void {\n    counter += 1;\n}\npub fn count() u32 {\n    return counter;\n}\n\n// Defined by another translation unit, so this file cannot make it `const`.\npub extern var environ: [*]?[*:0]u8;\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.no_public_mutable_global"
+                                }
+                            ]
+                        }
+                    ]
+                },
                 "no-catch-return": {
                     "description": "## What This Rule Does\nDisallows `catch` blocks that immediately return the caught error.\n\nCatch blocks that do nothing but return their error can and should be\nreplaced with a `try` statement. This rule allows for `catch`es that\nhave side effects such as printing the error or switching over it.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo() !void {\n  riskyOp() catch |e| return e;\n  riskyOp() catch |e| { return e; };\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst std = @import(\"std\");\n\nfn foo() !void{\n  try riskyOp();\n}\n\n// re-throwing with side effects is fine\nfn bar() !void {\n  riskyOp() catch |e| {\n    std.debug.print(\"Error: {any}\\n\", .{e});\n    return e;\n  };\n}\n\n// throwing a new error is fine\nfn baz() !void {\n  riskyOp() catch |e| return error.OutOfMemory;\n}\n```",
                     "default": "warn",
@@ -714,6 +736,11 @@
                     ]
                 }
             ]
+        },
+        "linter.rules.no_public_mutable_global": {
+            "type": "object",
+            "title": "no-public-mutable-global config",
+            "properties": {}
         },
         "max_depth": {
             "type": "object",
