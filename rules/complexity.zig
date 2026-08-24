@@ -217,6 +217,13 @@ test "rule isolates nested functions and ignores non-branches" {
     const pass = &[_][:0]const u8{
         \\fn outer() void { _ = null orelse 0; }
         \\fn inner(value: bool) void { if (value) {} }
+        \\fn withNested(value: bool) void {
+        \\    const Container = struct {
+        \\        fn inner(inner_value: bool) void { if (inner_value) {} }
+        \\    };
+        \\    if (value) {}
+        \\    _ = Container;
+        \\}
     };
     const fail = &[_][:0]const u8{
         \\fn outer(value: bool) void {

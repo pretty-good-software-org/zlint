@@ -70,14 +70,20 @@ fn countLines(source: []const u8, options: CountOptions) u32 {
                 i += 1;
                 continue;
             }
-            if (current == '"' or current == '\'') {
+            if (current == '\\' and i + 1 < line.len and line[i + 1] == '\\') {
+                has_non_whitespace = true;
+                has_code = true;
+                break;
+            } else if (current == '"' or current == '\'') {
                 in_string = current;
                 has_non_whitespace = true;
                 has_code = true;
                 i += 1;
             } else if (i + 1 < line.len and current == '/' and line[i + 1] == '/') {
+                has_non_whitespace = true;
                 break;
             } else if (i + 1 < line.len and current == '/' and line[i + 1] == '*') {
+                has_non_whitespace = true;
                 block_comment_depth = 1;
                 i += 2;
             } else {
@@ -88,8 +94,10 @@ fn countLines(source: []const u8, options: CountOptions) u32 {
                 i += 1;
             }
         }
-        if (options.skip_blank_lines and !has_non_whitespace) continue;
-        if (options.skip_comments and !has_code) continue;
+        const is_blank = !has_non_whitespace;
+        const is_comment_only = has_non_whitespace and !has_code;
+        if (is_blank and options.skip_blank_lines) continue;
+        if (is_comment_only and options.skip_comments) continue;
         count += 1;
     }
     return count;
@@ -132,6 +140,40 @@ test "countLines handles CRLF line endings" {
     const source = "const first = 1;\r\n// comment\r\nconst second = 2;\r\n";
 
     try std.testing.expectEqual(@as(u32, 2), countLines(source, .{
+        .skip_blank_lines = true,
+        .skip_comments = true,
+    }));
+}
+
+test "countLines applies blank and comment options independently" {
+    const source =
+        \\const first = 1;
+        \\// comment
+        \\
+        \\const second = 2;
+    ;
+
+    try std.testing.expectEqual(@as(u32, 3), countLines(source, .{
+        .skip_blank_lines = true,
+        .skip_comments = false,
+    }));
+    try std.testing.expectEqual(@as(u32, 3), countLines(source, .{
+        .skip_blank_lines = false,
+        .skip_comments = true,
+    }));
+}
+
+test "countLines treats multiline string contents as code" {
+    const source =
+        \\const text =
+        \\\\/*
+        \\\\payload
+        \\\\*/
+        \\\\;
+        \\const after = 1;
+    ;
+
+    try std.testing.expectEqual(@as(u32, 6), countLines(source, .{
         .skip_blank_lines = true,
         .skip_comments = true,
     }));
