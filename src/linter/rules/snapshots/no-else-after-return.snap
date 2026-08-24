@@ -1,0 +1,272 @@
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (c) {
+ 3 │         return 1;
+   ·         ────┬────
+   ·             ╰── the `if` branch always exits here
+ 4 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:2:12]
+ 1 │ fn foo(c: bool) void {
+ 2 │     if (c) return else bar();
+   ·            ───┬───
+   ·               ╰── the `if` branch always exits here
+   ·                   ──┬──
+   ·                     ╰── this `else` is unnecessary
+ 3 │ }
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:4:13]
+ 3 │         if (item == 0) {
+ 4 │             break;
+   ·             ──┬──
+   ·               ╰── the `if` branch always exits here
+ 5 │         } else {
+   ·           ──┬──
+   ·             ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:4:13]
+ 3 │         if (item == 0) {
+ 4 │             continue;
+   ·             ────┬────
+   ·                 ╰── the `if` branch always exits here
+ 5 │         } else {
+   ·           ──┬──
+   ·             ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:4:13]
+ 3 │         if (c) {
+ 4 │             break :outer;
+   ·             ──────┬──────
+   ·                   ╰── the `if` branch always exits here
+ 5 │         } else {
+   ·           ──┬──
+   ·             ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (c) {
+ 3 │         unreachable;
+   ·         ─────┬─────
+   ·              ╰── the `if` branch always exits here
+ 4 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (c) {
+ 3 │         @panic("nope");
+   ·         ───────┬───────
+   ·                ╰── the `if` branch always exits here
+ 4 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:4:13]
+ 3 │         if (d) {
+ 4 │             return 1;
+   ·             ────┬────
+   ·                 ╰── the `if` branch always exits here
+ 5 │         } else {
+   ·           ──┬──
+   ·             ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (c) {
+ 3 │ ╭─▶         if (d) {
+ 4 │ │               return 1;
+ 5 │ │           } else {
+ 6 │ │               return 2;
+ 7 │ ├─▶         }
+   · ╰──── the `if` branch always exits here
+ 8 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (c) {
+ 3 │ ╭─▶         switch (x) {
+ 4 │ │               0 => return 1,
+ 5 │ │               else => return 2,
+ 6 │ ├─▶         }
+   · ╰──── the `if` branch always exits here
+ 7 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:5:9]
+ 4 │     } else if (b) {
+ 5 │         return 2;
+   ·         ────┬────
+   ·             ╰── the `if` branch always exits here
+ 6 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (a) {
+ 3 │         return 1;
+   ·         ────┬────
+   ·             ╰── the `if` branch always exits here
+ 4 │     } else if (b) {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (opt) |x| {
+ 3 │         return x;
+   ·         ────┬────
+   ·             ╰── the `if` branch always exits here
+ 4 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (c) {
+ 3 │         return;
+   ·         ───┬───
+   ·            ╰── the `if` branch always exits here
+ 4 │     } else blk: {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (c) {
+ 3 │         return;
+   ·         ───┬───
+   ·            ╰── the `if` branch always exits here
+ 4 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:2:28]
+ 1 │ fn foo(c: bool, items: []const u8) void {
+ 2 │     for (items) |_| if (c) return else bar();
+   ·                            ───┬───
+   ·                               ╰── the `if` branch always exits here
+   ·                                   ──┬──
+   ·                                     ╰── this `else` is unnecessary
+ 3 │ }
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:4:13]
+ 3 │         0 => if (c) {
+ 4 │             return;
+   ·             ───┬───
+   ·                ╰── the `if` branch always exits here
+ 5 │         } else {
+   ·           ──┬──
+   ·             ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (c) {
+ 3 │         return;
+   ·         ───┬───
+   ·            ╰── the `if` branch always exits here
+ 4 │     } else {}
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:4:9]
+ 3 │         bar();
+ 4 │         return;
+   ·         ───┬───
+   ·            ╰── the `if` branch always exits here
+ 5 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:5:9]
+ 4 │         baz();
+ 5 │         return 1;
+   ·         ────┬────
+   ·             ╰── the `if` branch always exits here
+ 6 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:4:13]
+ 3 │         {
+ 4 │             return;
+   ·             ───┬───
+   ·                ╰── the `if` branch always exits here
+ 5 │         }
+ 6 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+ 7 │         bar();
+   ╰────
+  help: Drop the `else` and un-indent its body.
+
+  𝙭 no-else-after-return: This `else` follows a branch that never falls through
+   ╭─[no-else-after-return.zig:3:9]
+ 2 │     if (c) {
+ 3 │ ╭─▶         switch (x) {
+ 4 │ │               else => return,
+ 5 │ ├─▶         }
+   · ╰──── the `if` branch always exits here
+ 6 │     } else {
+   ·       ──┬──
+   ·         ╰── this `else` is unnecessary
+   ╰────
+  help: Drop the `else` and un-indent its body.
+

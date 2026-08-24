@@ -40,28 +40,6 @@
             "type": "object",
             "description": "Configure which rules are enabled and how.",
             "properties": {
-                "avoid-as": {
-                    "description": "## What This Rule Does\n\nDisallows using `@as()` when types can be otherwise inferred.\n\nZig has powerful [Result Location Semantics](https://ziglang.org/documentation/master/#Result-Location-Semantics) for inferring what type\nsomething should be. This happens in function parameters, return types,\nand type annotations. `@as()` is a last resort when no other contextual\ninformation is available. In any other case, other type inference mechanisms\nshould be used.\n\n:::warning\n\nChecks for function parameters and return types are not yet implemented.\n\n:::\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst x = @as(u32, 1);\n\nfn foo(x: u32) u64 {\n  return @as(u64, x); // type is inferred from return type\n}\nfoo(@as(u32, 1)); // type is inferred from function signature\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst x: u32 = 1;\n\nfn foo(x: u32) void {\n  // ...\n}\nfoo(1);\n```",
-                    "default": "warn",
-                    "markdownDescription": "## What This Rule Does\n\nDisallows using `@as()` when types can be otherwise inferred.\n\nZig has powerful [Result Location Semantics](https://ziglang.org/documentation/master/#Result-Location-Semantics) for inferring what type\nsomething should be. This happens in function parameters, return types,\nand type annotations. `@as()` is a last resort when no other contextual\ninformation is available. In any other case, other type inference mechanisms\nshould be used.\n\n:::warning\n\nChecks for function parameters and return types are not yet implemented.\n\n:::\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst x = @as(u32, 1);\n\nfn foo(x: u32) u64 {\n  return @as(u64, x); // type is inferred from return type\n}\nfoo(@as(u32, 1)); // type is inferred from function signature\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst x: u32 = 1;\n\nfn foo(x: u32) void {\n  // ...\n}\nfoo(1);\n```",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/Error.Severity"
-                        },
-                        {
-                            "type": "array",
-                            "items": false,
-                            "prefixItems": [
-                                {
-                                    "$ref": "#/definitions/Error.Severity"
-                                },
-                                {
-                                    "$ref": "#/definitions/linter.rules.avoid_as"
-                                }
-                            ]
-                        }
-                    ]
-                },
                 "case-convention": {
                     "description": "## What This Rule Does\nEnforces Zig's naming convention.\n\n:::warning\nOnly functions are checked at this time.\n:::\n\n## Functions\nIn general, functions that return values should use camelCase names while\nthose that return types should use PascalCase. Specially coming from Rust,\nsome people may be used to use snake_case for their functions, which can\nlead to inconsistencies in the code.\n\nNote that `extern`  functions are not checked since you cannot change\ntheir names.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn this_one_is_in_snake_case() void {}\nfn generic(T: type) T { return T{}; }\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn thisFunctionIsInCamelCase() void {}\nfn Generic(T: type) T { return T{}; }\nextern fn this_is_declared_in_c() void;\n```",
                     "default": "off",
@@ -79,28 +57,6 @@
                                 },
                                 {
                                     "$ref": "#/definitions/linter.rules.case_convention"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "allocator-first-param": {
-                    "description": "## What This Rule Does\n\nChecks that functions taking allocators as parameters have the allocator as\nthe first parameter. This conforms to common Zig conventions.\n\n## Rule Details\nThis rule looks for functions take an `Allocator` parameter and reports a\nviolation if\n- it is not the first parameter, or\n- there is a `self` parameter, and the allocator does not immediately follow it.\n\nParameters are considered to be an allocator if\n- the are named `allocator`, `alloc`, `gpa`, or `arena`, or one of those\n  with leading/trailing underscores,\n- their type ends with `Allocator`\n\nParameters are considered to be a `self` parameter if\n- they are named `self`, `this`, or one of those with leading/trailing underscores.\n- their type is `@This()`, `*@This()`, etc.\n- their type is a Capitalized and the function is within the definition of a\n  similarly named container (e.g. a struct).\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(x: u32, allocator: Allocator) !*u32 {\n  const heap_x = try allocator.create(u32);\n  heap_x.* = x;\n  return heap_x;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn foo(allocator: Allocator, x: u32) !*u32 {\n  const heap_x = try allocator.create(u32);\n  heap_x.* = x;\n  return heap_x;\n}\nconst Foo = struct {\n  list: std.ArrayListUnmanaged(u32) = .{},\n  // when writing methods, `self` must be the first parameter\n  pub fn expandCapacity(self: *Foo, allocator: Allocator, new_len: usize) !void {\n    try self.list.ensureTotalCapacity(allocator, new_len);\n  }\n};\n```",
-                    "default": "off",
-                    "markdownDescription": "## What This Rule Does\n\nChecks that functions taking allocators as parameters have the allocator as\nthe first parameter. This conforms to common Zig conventions.\n\n## Rule Details\nThis rule looks for functions take an `Allocator` parameter and reports a\nviolation if\n- it is not the first parameter, or\n- there is a `self` parameter, and the allocator does not immediately follow it.\n\nParameters are considered to be an allocator if\n- the are named `allocator`, `alloc`, `gpa`, or `arena`, or one of those\n  with leading/trailing underscores,\n- their type ends with `Allocator`\n\nParameters are considered to be a `self` parameter if\n- they are named `self`, `this`, or one of those with leading/trailing underscores.\n- their type is `@This()`, `*@This()`, etc.\n- their type is a Capitalized and the function is within the definition of a\n  similarly named container (e.g. a struct).\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(x: u32, allocator: Allocator) !*u32 {\n  const heap_x = try allocator.create(u32);\n  heap_x.* = x;\n  return heap_x;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn foo(allocator: Allocator, x: u32) !*u32 {\n  const heap_x = try allocator.create(u32);\n  heap_x.* = x;\n  return heap_x;\n}\nconst Foo = struct {\n  list: std.ArrayListUnmanaged(u32) = .{},\n  // when writing methods, `self` must be the first parameter\n  pub fn expandCapacity(self: *Foo, allocator: Allocator, new_len: usize) !void {\n    try self.list.ensureTotalCapacity(allocator, new_len);\n  }\n};\n```",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/Error.Severity"
-                        },
-                        {
-                            "type": "array",
-                            "items": false,
-                            "prefixItems": [
-                                {
-                                    "$ref": "#/definitions/Error.Severity"
-                                },
-                                {
-                                    "$ref": "#/definitions/linter.rules.allocator_first_param"
                                 }
                             ]
                         }
@@ -192,26 +148,6 @@
                         }
                     ]
                 },
-                "max-lines": {
-                    "default": "off",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/Error.Severity"
-                        },
-                        {
-                            "type": "array",
-                            "items": false,
-                            "prefixItems": [
-                                {
-                                    "$ref": "#/definitions/Error.Severity"
-                                },
-                                {
-                                    "$ref": "#/definitions/max_lines"
-                                }
-                            ]
-                        }
-                    ]
-                },
                 "complexity": {
                     "default": "off",
                     "oneOf": [
@@ -247,6 +183,268 @@
                                 },
                                 {
                                     "$ref": "#/definitions/max_params"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "no-print": {
+                    "description": "## What This Rule Does\nDisallows the use of `std.debug.print`.\n\n`print` statements are great for debugging, but they should be removed\nbefore code gets merged. When you need debug logs in production, use\n`std.log` instead.\n\nThis rule makes a best-effort attempt to ensure `print` calls are actually\nfrom `std.debug.print`. It will not report calls to custom print functions\nif they are defined within the same file. If you are getting false positives\nbecause you import a custom print function, consider disabling this rule on\na file-by-file basis instead of turning it off globally.\n\n### Tests\nBy default, this rule ignores `print`s in test blocks and files. Files are\nconsidered to be a test file if they end with `test.zig`. You may disable\nthis by setting `allow_tests` to `false` in the rule's metadata.\n\n```json\n{\n  \"rules\": {\n    \"no-print\": [\"warn\", { \"allow_tests\": false }]\n  }\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst std = @import(\"std\");\nconst debug = std.debug;\nconst print = std.debug.print;\nfn main() void {\n    std.debug.print(\"This should not be here: {d}\\n\", .{42});\n    debug.print(\"This should not be here: {d}\\n\", .{42});\n    print(\"This should not be here: {d}\\n\", .{42});\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst std = @import(\"std\");\nfn foo() u32 {\n    std.log.debug(\"running foo\", .{});\n    return 1;\n}\n\ntest foo {\n    std.debug.print(\"testing foo\\n\", .{});\n    try std.testing.expectEqual(1, foo());\n}\n```\n\n```zig\nfn print(comptime msg: []const u8, args: anytype) void {\n    // ...\n}\nfn main() void {\n    print(\"Staring program\", .{});\n}\n```",
+                    "default": "warn",
+                    "markdownDescription": "## What This Rule Does\nDisallows the use of `std.debug.print`.\n\n`print` statements are great for debugging, but they should be removed\nbefore code gets merged. When you need debug logs in production, use\n`std.log` instead.\n\nThis rule makes a best-effort attempt to ensure `print` calls are actually\nfrom `std.debug.print`. It will not report calls to custom print functions\nif they are defined within the same file. If you are getting false positives\nbecause you import a custom print function, consider disabling this rule on\na file-by-file basis instead of turning it off globally.\n\n### Tests\nBy default, this rule ignores `print`s in test blocks and files. Files are\nconsidered to be a test file if they end with `test.zig`. You may disable\nthis by setting `allow_tests` to `false` in the rule's metadata.\n\n```json\n{\n  \"rules\": {\n    \"no-print\": [\"warn\", { \"allow_tests\": false }]\n  }\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst std = @import(\"std\");\nconst debug = std.debug;\nconst print = std.debug.print;\nfn main() void {\n    std.debug.print(\"This should not be here: {d}\\n\", .{42});\n    debug.print(\"This should not be here: {d}\\n\", .{42});\n    print(\"This should not be here: {d}\\n\", .{42});\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst std = @import(\"std\");\nfn foo() u32 {\n    std.log.debug(\"running foo\", .{});\n    return 1;\n}\n\ntest foo {\n    std.debug.print(\"testing foo\\n\", .{});\n    try std.testing.expectEqual(1, foo());\n}\n```\n\n```zig\nfn print(comptime msg: []const u8, args: anytype) void {\n    // ...\n}\nfn main() void {\n    print(\"Staring program\", .{});\n}\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.no_print"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "line-length": {
+                    "description": "## What This Rule Does\n\nChecks if any line goes beyond a given number of columns.\n\n## Examples\n\nExamples of **incorrect** code for this rule (with a threshold of 120 columns):\n```zig\nconst std = @import(\"std\");\nconst longStructDeclarationInOneLine = struct { max_length: u32 = 120, a: usize = 123, b: usize = 12354, c: usize = 1234352 };\nfn reallyExtraVerboseFunctionNameToThePointOfBeingACodeSmellAndProbablyAHintThatYouCanGetAwayWithAnotherNameOrSplittingThisIntoSeveralFunctions() u32 {\n    return 123;\n}\n```\n\nExamples of **correct** code for this rule (with a threshold of 120 columns):\n```zig\nconst std = @import(\"std\");\nconst longStructInMultipleLines = struct {\n    max_length: u32 = 120,\n    a: usize = 123,\n    b: usize = 12354,\n    c: usize = 1234352,\n};\nfn Get123Constant() u32 {\n    return 123;\n}\n```",
+                    "default": "off",
+                    "markdownDescription": "## What This Rule Does\n\nChecks if any line goes beyond a given number of columns.\n\n## Examples\n\nExamples of **incorrect** code for this rule (with a threshold of 120 columns):\n```zig\nconst std = @import(\"std\");\nconst longStructDeclarationInOneLine = struct { max_length: u32 = 120, a: usize = 123, b: usize = 12354, c: usize = 1234352 };\nfn reallyExtraVerboseFunctionNameToThePointOfBeingACodeSmellAndProbablyAHintThatYouCanGetAwayWithAnotherNameOrSplittingThisIntoSeveralFunctions() u32 {\n    return 123;\n}\n```\n\nExamples of **correct** code for this rule (with a threshold of 120 columns):\n```zig\nconst std = @import(\"std\");\nconst longStructInMultipleLines = struct {\n    max_length: u32 = 120,\n    a: usize = 123,\n    b: usize = 12354,\n    c: usize = 1234352,\n};\nfn Get123Constant() u32 {\n    return 123;\n}\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.line_length"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "returned-stack-reference": {
+                    "description": "## What This Rule Does\nChecks for functions that return references to stack-allocated memory.\n\n:::warning\n\nThis rule is still in early development. PRs to improve it are welcome.\n\n:::\n\nIt is illegal to use stack-allocated memory outside of the function that\nallocated it. Once that function returns and the stack is popped, the memory\nis no longer valid and may cause segfaults or undefined behavior.\n\n```zig\nconst std = @import(\"std\");\nfn foo() *u32 {\n  var x: u32 = 1; // x is on the stack\n  return &x;\n}\nfn bar() void {\n  const x = foo();\n  std.debug.print(\"{d}\\n\", .{x}); // crashes\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst std = @import(\"std\");\nfn foo() *u32 {\n  var x: u32 = 1;\n  return &x;\n}\nfn bar() []u32 {\n  var x: [1]u32 = .{1};\n  return x[0..];\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn foo() *u32 {\n  var x = std.heap.page_allocator.create(u32);\n  x.* = 1;\n  return x;\n}\n```",
+                    "default": "off",
+                    "markdownDescription": "## What This Rule Does\nChecks for functions that return references to stack-allocated memory.\n\n:::warning\n\nThis rule is still in early development. PRs to improve it are welcome.\n\n:::\n\nIt is illegal to use stack-allocated memory outside of the function that\nallocated it. Once that function returns and the stack is popped, the memory\nis no longer valid and may cause segfaults or undefined behavior.\n\n```zig\nconst std = @import(\"std\");\nfn foo() *u32 {\n  var x: u32 = 1; // x is on the stack\n  return &x;\n}\nfn bar() void {\n  const x = foo();\n  std.debug.print(\"{d}\\n\", .{x}); // crashes\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst std = @import(\"std\");\nfn foo() *u32 {\n  var x: u32 = 1;\n  return &x;\n}\nfn bar() []u32 {\n  var x: [1]u32 = .{1};\n  return x[0..];\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn foo() *u32 {\n  var x = std.heap.page_allocator.create(u32);\n  x.* = 1;\n  return x;\n}\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.returned_stack_reference"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "no-else-after-return": {
+                    "description": "## What This Rule Does\n\nDisallows `else` branches attached to an `if` branch that never falls\nthrough. When the `if` branch always `return`s, `break`s, `continue`s, or\notherwise stops running the enclosing block, the `else` body already only\nruns when the condition was false. Keeping it indents the rest of the\nfunction for nothing.\n\nA branch never falls through when it ends in `return`, `break`, `continue`,\n`unreachable`, `@panic`, or `@compileError`, or when it is a block, an\n`if`/`else`, or a `switch` whose every path does the same.\n\n### Allowed scenarios\n\nThis rule only fires on `if` statements whose value is discarded. It leaves\nalone:\n\n- `if` expressions, where `else` supplies the value of the false branch.\n- `else |err|` branches, which bind the error payload of an error union and\n  cannot be un-indented without rewriting the `if` into a `catch`.\n- `while`/`for` `else` clauses, which run when the loop finishes without\n  `break` rather than when a condition is false.\n- `else` bodies holding a top-level `defer` or `errdefer`, because\n  un-indenting one delays it to the end of the enclosing block.\n\nBranches ending in a loop, a labeled block, or a labeled `switch` count as\nfalling through: `break :label` and `continue :label` resume inside the\nenclosing block rather than leaving it.\n\n:::info\nThis rule reports but does not fix. Un-indenting an `else` that declares a\nname also declared later in the enclosing block is a redeclaration error,\nso keep the braces (or rename) in that case.\n:::\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn abs(x: i32) i32 {\n    if (x < 0) {\n        return -x;\n    } else {\n        return x;\n    }\n}\n\nfn countNonZero(items: []const u8) usize {\n    var n: usize = 0;\n    for (items) |item| {\n        if (item == 0) {\n            continue;\n        } else {\n            n += 1;\n        }\n    }\n    return n;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn abs(x: i32) i32 {\n    if (x < 0) return -x;\n    return x;\n}\n\n// `else` supplies the value of the false branch\nfn sign(x: i32) i32 {\n    return if (x < 0) -1 else 1;\n}\n\n// `else |err|` binds the error payload\nfn lenOrZero(path: []const u8) usize {\n    if (statSize(path)) |size| {\n        return size;\n    } else |_| {\n        return 0;\n    }\n}\n\n// the `if` branch falls through\nfn bump(x: i32) i32 {\n    var y = x;\n    if (y < 0) {\n        y = 0;\n    } else {\n        y += 1;\n    }\n    return y;\n}\n```",
+                    "default": "off",
+                    "markdownDescription": "## What This Rule Does\n\nDisallows `else` branches attached to an `if` branch that never falls\nthrough. When the `if` branch always `return`s, `break`s, `continue`s, or\notherwise stops running the enclosing block, the `else` body already only\nruns when the condition was false. Keeping it indents the rest of the\nfunction for nothing.\n\nA branch never falls through when it ends in `return`, `break`, `continue`,\n`unreachable`, `@panic`, or `@compileError`, or when it is a block, an\n`if`/`else`, or a `switch` whose every path does the same.\n\n### Allowed scenarios\n\nThis rule only fires on `if` statements whose value is discarded. It leaves\nalone:\n\n- `if` expressions, where `else` supplies the value of the false branch.\n- `else |err|` branches, which bind the error payload of an error union and\n  cannot be un-indented without rewriting the `if` into a `catch`.\n- `while`/`for` `else` clauses, which run when the loop finishes without\n  `break` rather than when a condition is false.\n- `else` bodies holding a top-level `defer` or `errdefer`, because\n  un-indenting one delays it to the end of the enclosing block.\n\nBranches ending in a loop, a labeled block, or a labeled `switch` count as\nfalling through: `break :label` and `continue :label` resume inside the\nenclosing block rather than leaving it.\n\n:::info\nThis rule reports but does not fix. Un-indenting an `else` that declares a\nname also declared later in the enclosing block is a redeclaration error,\nso keep the braces (or rename) in that case.\n:::\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn abs(x: i32) i32 {\n    if (x < 0) {\n        return -x;\n    } else {\n        return x;\n    }\n}\n\nfn countNonZero(items: []const u8) usize {\n    var n: usize = 0;\n    for (items) |item| {\n        if (item == 0) {\n            continue;\n        } else {\n            n += 1;\n        }\n    }\n    return n;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn abs(x: i32) i32 {\n    if (x < 0) return -x;\n    return x;\n}\n\n// `else` supplies the value of the false branch\nfn sign(x: i32) i32 {\n    return if (x < 0) -1 else 1;\n}\n\n// `else |err|` binds the error payload\nfn lenOrZero(path: []const u8) usize {\n    if (statSize(path)) |size| {\n        return size;\n    } else |_| {\n        return 0;\n    }\n}\n\n// the `if` branch falls through\nfn bump(x: i32) i32 {\n    var y = x;\n    if (y < 0) {\n        y = 0;\n    } else {\n        y += 1;\n    }\n    return y;\n}\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.no_else_after_return"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "unsafe-undefined": {
+                    "description": "## What This Rule Does\nDisallows initializing or assigning variables to `undefined`.\n\nReading uninitialized memory is one of the most common sources of undefined\nbehavior. While debug builds come with runtime safety checks for `undefined`\naccess, they are otherwise undetectable and will not cause panics in release\nbuilds.\n\n### Allowed Scenarios\n\nThere are some cases where using `undefined` makes sense, such as array\ninitialization. Some cases are implicitly allowed, but others should be\ncommunicated to other programmers via a safety comment. Adding `SAFETY:\n[reason]` before the line using `undefined` will not trigger a rule\nviolation.\n\n```zig\n// SAFETY: foo is written to by `initializeFoo`, so `undefined` is never\n// read.\nvar foo: u32 = undefined\ninitializeFoo(&foo);\n\n// SAFETY: this covers the entire initialization\nconst bar: Bar = .{\n  .a = undefined,\n  .b = undefined,\n};\n```\n\n:::info\nObviously unsafe usages of `undefined`, such `x == undefined`, are not\nallowed even in these exceptions.\n:::\n\n#### Arrays\nArray-typed variable declarations may be initialized to undefined.\nArray-typed container fields with `undefined` as a default value will still\ntrigger a violation.\n\n```zig\n// arrays may be set to undefined without a safety comment\nvar arr: [10]u8 = undefined;\n@memset(&arr, 0);\n\n// This is not allowed\nconst Foo = struct {\n  foo: [4]u32 = undefined\n};\n```\n\n#### Whitelisting Types\nYou may whitelist specific types that are allowed to be initialized to `undefined`.\nAny variable with this type will not have a violation triggered, as long as\nthe type is obvious to ZLint's semantic analyzer. By default the whitelist\ncontains `ThreadPool`/`Thread.Pool` from `std.Thread.Pool`\n\n```zig\n// \"unsafe-undefined\": [\"error\", { \"allow_types\": [\"CustomBuffer\"] }]\nconst CustomBuffer = [4096]u8;\nvar buf: CustomBuffer = undefined; // ok\n```\n\n:::warning\nZLint does not have a type checker yet, so implicit struct initializations\nwill not be ignored.\n:::\n\n#### Destructors\nInvalidating freed pointers/data by setting it to `undefined` is helpful for\nfinding use-after-free bugs. Using `undefined` in destructors will not trigger\na violation, unless it is obviously unsafe (e.g. in a comparison).\n\n```zig\nconst std = @import(\"std\");\nconst Foo = struct {\n  data: []u8,\n  pub fn init(allocator: std.mem.Allocator) !Foo {\n     const data = try allocator.alloc(u8, 8);\n     return .{ .data = data };\n  }\n  pub fn deinit(self: *Foo, allocator: std.mem.Allocator) void {\n    allocator.free(self.data);\n    self.* = undefined; // safe\n  }\n};\n```\n\nA method is considered a destructor if it is named\n- `deinit`\n- `destroy`\n- `reset`\n\n#### `test` blocks\nAll usages of `undefined` in `test` blocks are allowed. Code that isn't safe\nwill be caught by the test runner.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst x = undefined;\n\n// Consumers of `Foo` should be forced to initialize `x`.\nconst Foo = struct {\n  x: *u32 = undefined,\n};\n\nvar y: *u32 = allocator.create(u32);\ny.* = undefined;\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst Foo = struct {\n  x: *u32,\n\n  fn init(allocator: *std.mem.Allocator, value: u32) void {\n    self.x = allocator.create(u32);\n    self.x.* = value;\n  }\n\n  // variables may be re-assigned to `undefined` in destructors\n  fn deinit(self: *Foo, alloc: std.mem.Allocator) void {\n    alloc.destroy(self.x);\n    self.x = undefined;\n  }\n};\n\ntest Foo {\n  // Allowed. If this is truly unsafe, it will be caught by the test.\n  var foo: Foo = undefined;\n  // ...\n}\n```",
+                    "default": "warn",
+                    "markdownDescription": "## What This Rule Does\nDisallows initializing or assigning variables to `undefined`.\n\nReading uninitialized memory is one of the most common sources of undefined\nbehavior. While debug builds come with runtime safety checks for `undefined`\naccess, they are otherwise undetectable and will not cause panics in release\nbuilds.\n\n### Allowed Scenarios\n\nThere are some cases where using `undefined` makes sense, such as array\ninitialization. Some cases are implicitly allowed, but others should be\ncommunicated to other programmers via a safety comment. Adding `SAFETY:\n[reason]` before the line using `undefined` will not trigger a rule\nviolation.\n\n```zig\n// SAFETY: foo is written to by `initializeFoo`, so `undefined` is never\n// read.\nvar foo: u32 = undefined\ninitializeFoo(&foo);\n\n// SAFETY: this covers the entire initialization\nconst bar: Bar = .{\n  .a = undefined,\n  .b = undefined,\n};\n```\n\n:::info\nObviously unsafe usages of `undefined`, such `x == undefined`, are not\nallowed even in these exceptions.\n:::\n\n#### Arrays\nArray-typed variable declarations may be initialized to undefined.\nArray-typed container fields with `undefined` as a default value will still\ntrigger a violation.\n\n```zig\n// arrays may be set to undefined without a safety comment\nvar arr: [10]u8 = undefined;\n@memset(&arr, 0);\n\n// This is not allowed\nconst Foo = struct {\n  foo: [4]u32 = undefined\n};\n```\n\n#### Whitelisting Types\nYou may whitelist specific types that are allowed to be initialized to `undefined`.\nAny variable with this type will not have a violation triggered, as long as\nthe type is obvious to ZLint's semantic analyzer. By default the whitelist\ncontains `ThreadPool`/`Thread.Pool` from `std.Thread.Pool`\n\n```zig\n// \"unsafe-undefined\": [\"error\", { \"allow_types\": [\"CustomBuffer\"] }]\nconst CustomBuffer = [4096]u8;\nvar buf: CustomBuffer = undefined; // ok\n```\n\n:::warning\nZLint does not have a type checker yet, so implicit struct initializations\nwill not be ignored.\n:::\n\n#### Destructors\nInvalidating freed pointers/data by setting it to `undefined` is helpful for\nfinding use-after-free bugs. Using `undefined` in destructors will not trigger\na violation, unless it is obviously unsafe (e.g. in a comparison).\n\n```zig\nconst std = @import(\"std\");\nconst Foo = struct {\n  data: []u8,\n  pub fn init(allocator: std.mem.Allocator) !Foo {\n     const data = try allocator.alloc(u8, 8);\n     return .{ .data = data };\n  }\n  pub fn deinit(self: *Foo, allocator: std.mem.Allocator) void {\n    allocator.free(self.data);\n    self.* = undefined; // safe\n  }\n};\n```\n\nA method is considered a destructor if it is named\n- `deinit`\n- `destroy`\n- `reset`\n\n#### `test` blocks\nAll usages of `undefined` in `test` blocks are allowed. Code that isn't safe\nwill be caught by the test runner.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst x = undefined;\n\n// Consumers of `Foo` should be forced to initialize `x`.\nconst Foo = struct {\n  x: *u32 = undefined,\n};\n\nvar y: *u32 = allocator.create(u32);\ny.* = undefined;\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst Foo = struct {\n  x: *u32,\n\n  fn init(allocator: *std.mem.Allocator, value: u32) void {\n    self.x = allocator.create(u32);\n    self.x.* = value;\n  }\n\n  // variables may be re-assigned to `undefined` in destructors\n  fn deinit(self: *Foo, alloc: std.mem.Allocator) void {\n    alloc.destroy(self.x);\n    self.x = undefined;\n  }\n};\n\ntest Foo {\n  // Allowed. If this is truly unsafe, it will be caught by the test.\n  var foo: Foo = undefined;\n  // ...\n}\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.unsafe_undefined"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "suppressed-errors": {
+                    "description": "## What This Rule Does\nDisallows suppressing or otherwise mishandling caught errors.\n\nFunctions that return error unions could error during \"normal\" execution.\nIf they didn't, they would not return an error or would panic instead.\n\nThis rule enforces that errors are\n1. Propagated up to callers either implicitly or by returning a new error,\n   ```zig\n   const a = try foo();\n   const b = foo catch |e| {\n       switch (e) {\n           FooError.OutOfMemory => error.OutOfMemory,\n           // ...\n       }\n   }\n   ```\n2. Are inspected and handled to continue normal execution\n   ```zig\n   /// It's fine if users are missing a config file, and open() + err\n   // handling is faster than stat() then open()\n   var config?: Config = openConfig() catch null;\n   ```\n3. Caught and `panic`ed on to provide better crash diagnostics\n   ```zig\n   const str = try allocator.alloc(u8, size) catch @panic(\"Out of memory\");\n   ```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst x = foo() catch {};\nconst y = foo() catch {\n  // comments within empty catch blocks are still considered violations.\n};\n// `unreachable` is for code that will never be reached due to invariants.\nconst y = foo() catch unreachable\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst x = foo() catch @panic(\"foo failed.\");\nconst y = foo() catch {\n  std.debug.print(\"Foo failed.\\n\", .{});\n};\nconst z = foo() catch null;\n// Writer errors may be safely ignored\nwriter.print(\"{}\", .{5}) catch {};\n\n// suppression is allowed in tests\ntest foo {\n  foo() catch {};\n}\n```",
+                    "default": "warn",
+                    "markdownDescription": "## What This Rule Does\nDisallows suppressing or otherwise mishandling caught errors.\n\nFunctions that return error unions could error during \"normal\" execution.\nIf they didn't, they would not return an error or would panic instead.\n\nThis rule enforces that errors are\n1. Propagated up to callers either implicitly or by returning a new error,\n   ```zig\n   const a = try foo();\n   const b = foo catch |e| {\n       switch (e) {\n           FooError.OutOfMemory => error.OutOfMemory,\n           // ...\n       }\n   }\n   ```\n2. Are inspected and handled to continue normal execution\n   ```zig\n   /// It's fine if users are missing a config file, and open() + err\n   // handling is faster than stat() then open()\n   var config?: Config = openConfig() catch null;\n   ```\n3. Caught and `panic`ed on to provide better crash diagnostics\n   ```zig\n   const str = try allocator.alloc(u8, size) catch @panic(\"Out of memory\");\n   ```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst x = foo() catch {};\nconst y = foo() catch {\n  // comments within empty catch blocks are still considered violations.\n};\n// `unreachable` is for code that will never be reached due to invariants.\nconst y = foo() catch unreachable\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst x = foo() catch @panic(\"foo failed.\");\nconst y = foo() catch {\n  std.debug.print(\"Foo failed.\\n\", .{});\n};\nconst z = foo() catch null;\n// Writer errors may be safely ignored\nwriter.print(\"{}\", .{5}) catch {};\n\n// suppression is allowed in tests\ntest foo {\n  foo() catch {};\n}\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.suppressed_errors"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "no-return-try": {
+                    "description": "## What This Rule Does\n\nDisallows `return`ing a `try` expression.\n\nReturning an error union directly has the same exact semantics as `try`ing\nit and then returning the result.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst std = @import(\"std\");\n\nfn foo() !void {\n  return error.OutOfMemory;\n}\n\nfn bar() !void {\n  return try foo();\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst std = @import(\"std\");\n\nfn foo() !void {\n  return error.OutOfMemory;\n}\n\nfn bar() !void {\n  errdefer {\n    std.debug.print(\"this still gets printed.\\n\", .{});\n  }\n\n  return foo();\n}\n```",
+                    "default": "off",
+                    "markdownDescription": "## What This Rule Does\n\nDisallows `return`ing a `try` expression.\n\nReturning an error union directly has the same exact semantics as `try`ing\nit and then returning the result.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst std = @import(\"std\");\n\nfn foo() !void {\n  return error.OutOfMemory;\n}\n\nfn bar() !void {\n  return try foo();\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst std = @import(\"std\");\n\nfn foo() !void {\n  return error.OutOfMemory;\n}\n\nfn bar() !void {\n  errdefer {\n    std.debug.print(\"this still gets printed.\\n\", .{});\n  }\n\n  return foo();\n}\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.no_return_try"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "forbidden-imports": {
+                    "description": "## What This Rule Does\nRestricts imports between source-path patterns.\n\nThis rule is intended for project architecture boundaries. Each boundary\napplies when the importing file matches `source` and the imported `.zig`\nfile matches one of the `forbidden` patterns.\n\n```json\n{\n  \"rules\": {\n    \"forbidden-imports\": [\"error\", {\n      \"rules\": [\n        {\n          \"source\": \"src/ui/**\",\n          \"forbidden\": [\"src/database/**\"]\n        }\n      ]\n    }]\n  }\n}\n```\n\nPatterns are resolved relative to the current working directory. Build\nprovided module imports such as `@import(\"database\")` are ignored because\ntheir source path is not available to a source-level rule.",
+                    "default": "off",
+                    "markdownDescription": "## What This Rule Does\nRestricts imports between source-path patterns.\n\nThis rule is intended for project architecture boundaries. Each boundary\napplies when the importing file matches `source` and the imported `.zig`\nfile matches one of the `forbidden` patterns.\n\n```json\n{\n  \"rules\": {\n    \"forbidden-imports\": [\"error\", {\n      \"rules\": [\n        {\n          \"source\": \"src/ui/**\",\n          \"forbidden\": [\"src/database/**\"]\n        }\n      ]\n    }]\n  }\n}\n```\n\nPatterns are resolved relative to the current working directory. Build\nprovided module imports such as `@import(\"database\")` are ignored because\ntheir source path is not available to a source-level rule.",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.forbidden_imports"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "must-return-ref": {
+                    "description": "## What This Rule Does\nDisallows returning copies of types that store a `capacity`.\n\nZig does not have move semantics. Returning a value by value copies it.\nReturning a copy of a struct's field that records how much memory it has\nallocated can easily lead to memory leaks.\n\n```zig\nconst std = @import(\"std\");\npub const Foo = struct {\n  list: std.array_list.Managed(u32),\n  pub fn getList(self: *Foo) std.array_list.Managed(u32) {\n      return self.list;\n  }\n};\n\npub fn main() !void {\n  var foo: Foo = .{\n    .list = try std.array_list.Managed(u32).init(std.heap.page_allocator)\n  };\n  defer foo.list.deinit();\n  var list = foo.getList();\n  try list.append(1); // leaked!\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(self: *Foo) std.array_list.Managed(u32) {\n  return self.list;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\n// pass by reference\nfn foo(self: *Foo) *std.array_list.Managed(u32) {\n  return &self.list;\n}\n\n// new instances are fine\nfn foo() ArenaAllocator {\n  return std.mem.ArenaAllocator.init(std.heap.page_allocator);\n}\n```",
+                    "default": "warn",
+                    "markdownDescription": "## What This Rule Does\nDisallows returning copies of types that store a `capacity`.\n\nZig does not have move semantics. Returning a value by value copies it.\nReturning a copy of a struct's field that records how much memory it has\nallocated can easily lead to memory leaks.\n\n```zig\nconst std = @import(\"std\");\npub const Foo = struct {\n  list: std.array_list.Managed(u32),\n  pub fn getList(self: *Foo) std.array_list.Managed(u32) {\n      return self.list;\n  }\n};\n\npub fn main() !void {\n  var foo: Foo = .{\n    .list = try std.array_list.Managed(u32).init(std.heap.page_allocator)\n  };\n  defer foo.list.deinit();\n  var list = foo.getList();\n  try list.append(1); // leaked!\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(self: *Foo) std.array_list.Managed(u32) {\n  return self.list;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\n// pass by reference\nfn foo(self: *Foo) *std.array_list.Managed(u32) {\n  return &self.list;\n}\n\n// new instances are fine\nfn foo() ArenaAllocator {\n  return std.mem.ArenaAllocator.init(std.heap.page_allocator);\n}\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.must_return_ref"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "avoid-as": {
+                    "description": "## What This Rule Does\n\nDisallows using `@as()` when types can be otherwise inferred.\n\nZig has powerful [Result Location Semantics](https://ziglang.org/documentation/master/#Result-Location-Semantics) for inferring what type\nsomething should be. This happens in function parameters, return types,\nand type annotations. `@as()` is a last resort when no other contextual\ninformation is available. In any other case, other type inference mechanisms\nshould be used.\n\n:::warning\n\nChecks for function parameters and return types are not yet implemented.\n\n:::\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst x = @as(u32, 1);\n\nfn foo(x: u32) u64 {\n  return @as(u64, x); // type is inferred from return type\n}\nfoo(@as(u32, 1)); // type is inferred from function signature\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst x: u32 = 1;\n\nfn foo(x: u32) void {\n  // ...\n}\nfoo(1);\n```",
+                    "default": "warn",
+                    "markdownDescription": "## What This Rule Does\n\nDisallows using `@as()` when types can be otherwise inferred.\n\nZig has powerful [Result Location Semantics](https://ziglang.org/documentation/master/#Result-Location-Semantics) for inferring what type\nsomething should be. This happens in function parameters, return types,\nand type annotations. `@as()` is a last resort when no other contextual\ninformation is available. In any other case, other type inference mechanisms\nshould be used.\n\n:::warning\n\nChecks for function parameters and return types are not yet implemented.\n\n:::\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst x = @as(u32, 1);\n\nfn foo(x: u32) u64 {\n  return @as(u64, x); // type is inferred from return type\n}\nfoo(@as(u32, 1)); // type is inferred from function signature\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst x: u32 = 1;\n\nfn foo(x: u32) void {\n  // ...\n}\nfoo(1);\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.avoid_as"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "allocator-first-param": {
+                    "description": "## What This Rule Does\n\nChecks that functions taking allocators as parameters have the allocator as\nthe first parameter. This conforms to common Zig conventions.\n\n## Rule Details\nThis rule looks for functions take an `Allocator` parameter and reports a\nviolation if\n- it is not the first parameter, or\n- there is a `self` parameter, and the allocator does not immediately follow it.\n\nParameters are considered to be an allocator if\n- the are named `allocator`, `alloc`, `gpa`, or `arena`, or one of those\n  with leading/trailing underscores,\n- their type ends with `Allocator`\n\nParameters are considered to be a `self` parameter if\n- they are named `self`, `this`, or one of those with leading/trailing underscores.\n- their type is `@This()`, `*@This()`, etc.\n- their type is a Capitalized and the function is within the definition of a\n  similarly named container (e.g. a struct).\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(x: u32, allocator: Allocator) !*u32 {\n  const heap_x = try allocator.create(u32);\n  heap_x.* = x;\n  return heap_x;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn foo(allocator: Allocator, x: u32) !*u32 {\n  const heap_x = try allocator.create(u32);\n  heap_x.* = x;\n  return heap_x;\n}\nconst Foo = struct {\n  list: std.ArrayListUnmanaged(u32) = .{},\n  // when writing methods, `self` must be the first parameter\n  pub fn expandCapacity(self: *Foo, allocator: Allocator, new_len: usize) !void {\n    try self.list.ensureTotalCapacity(allocator, new_len);\n  }\n};\n```",
+                    "default": "off",
+                    "markdownDescription": "## What This Rule Does\n\nChecks that functions taking allocators as parameters have the allocator as\nthe first parameter. This conforms to common Zig conventions.\n\n## Rule Details\nThis rule looks for functions take an `Allocator` parameter and reports a\nviolation if\n- it is not the first parameter, or\n- there is a `self` parameter, and the allocator does not immediately follow it.\n\nParameters are considered to be an allocator if\n- the are named `allocator`, `alloc`, `gpa`, or `arena`, or one of those\n  with leading/trailing underscores,\n- their type ends with `Allocator`\n\nParameters are considered to be a `self` parameter if\n- they are named `self`, `this`, or one of those with leading/trailing underscores.\n- their type is `@This()`, `*@This()`, etc.\n- their type is a Capitalized and the function is within the definition of a\n  similarly named container (e.g. a struct).\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(x: u32, allocator: Allocator) !*u32 {\n  const heap_x = try allocator.create(u32);\n  heap_x.* = x;\n  return heap_x;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn foo(allocator: Allocator, x: u32) !*u32 {\n  const heap_x = try allocator.create(u32);\n  heap_x.* = x;\n  return heap_x;\n}\nconst Foo = struct {\n  list: std.ArrayListUnmanaged(u32) = .{},\n  // when writing methods, `self` must be the first parameter\n  pub fn expandCapacity(self: *Foo, allocator: Allocator, new_len: usize) !void {\n    try self.list.ensureTotalCapacity(allocator, new_len);\n  }\n};\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.allocator_first_param"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "max-lines": {
+                    "default": "off",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/max_lines"
                                 }
                             ]
                         }
@@ -340,72 +538,6 @@
                         }
                     ]
                 },
-                "line-length": {
-                    "description": "## What This Rule Does\n\nChecks if any line goes beyond a given number of columns.\n\n## Examples\n\nExamples of **incorrect** code for this rule (with a threshold of 120 columns):\n```zig\nconst std = @import(\"std\");\nconst longStructDeclarationInOneLine = struct { max_length: u32 = 120, a: usize = 123, b: usize = 12354, c: usize = 1234352 };\nfn reallyExtraVerboseFunctionNameToThePointOfBeingACodeSmellAndProbablyAHintThatYouCanGetAwayWithAnotherNameOrSplittingThisIntoSeveralFunctions() u32 {\n    return 123;\n}\n```\n\nExamples of **correct** code for this rule (with a threshold of 120 columns):\n```zig\nconst std = @import(\"std\");\nconst longStructInMultipleLines = struct {\n    max_length: u32 = 120,\n    a: usize = 123,\n    b: usize = 12354,\n    c: usize = 1234352,\n};\nfn Get123Constant() u32 {\n    return 123;\n}\n```",
-                    "default": "off",
-                    "markdownDescription": "## What This Rule Does\n\nChecks if any line goes beyond a given number of columns.\n\n## Examples\n\nExamples of **incorrect** code for this rule (with a threshold of 120 columns):\n```zig\nconst std = @import(\"std\");\nconst longStructDeclarationInOneLine = struct { max_length: u32 = 120, a: usize = 123, b: usize = 12354, c: usize = 1234352 };\nfn reallyExtraVerboseFunctionNameToThePointOfBeingACodeSmellAndProbablyAHintThatYouCanGetAwayWithAnotherNameOrSplittingThisIntoSeveralFunctions() u32 {\n    return 123;\n}\n```\n\nExamples of **correct** code for this rule (with a threshold of 120 columns):\n```zig\nconst std = @import(\"std\");\nconst longStructInMultipleLines = struct {\n    max_length: u32 = 120,\n    a: usize = 123,\n    b: usize = 12354,\n    c: usize = 1234352,\n};\nfn Get123Constant() u32 {\n    return 123;\n}\n```",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/Error.Severity"
-                        },
-                        {
-                            "type": "array",
-                            "items": false,
-                            "prefixItems": [
-                                {
-                                    "$ref": "#/definitions/Error.Severity"
-                                },
-                                {
-                                    "$ref": "#/definitions/linter.rules.line_length"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "no-print": {
-                    "description": "## What This Rule Does\nDisallows the use of `std.debug.print`.\n\n`print` statements are great for debugging, but they should be removed\nbefore code gets merged. When you need debug logs in production, use\n`std.log` instead.\n\nThis rule makes a best-effort attempt to ensure `print` calls are actually\nfrom `std.debug.print`. It will not report calls to custom print functions\nif they are defined within the same file. If you are getting false positives\nbecause you import a custom print function, consider disabling this rule on\na file-by-file basis instead of turning it off globally.\n\n### Tests\nBy default, this rule ignores `print`s in test blocks and files. Files are\nconsidered to be a test file if they end with `test.zig`. You may disable\nthis by setting `allow_tests` to `false` in the rule's metadata.\n\n```json\n{\n  \"rules\": {\n    \"no-print\": [\"warn\", { \"allow_tests\": false }]\n  }\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst std = @import(\"std\");\nconst debug = std.debug;\nconst print = std.debug.print;\nfn main() void {\n    std.debug.print(\"This should not be here: {d}\\n\", .{42});\n    debug.print(\"This should not be here: {d}\\n\", .{42});\n    print(\"This should not be here: {d}\\n\", .{42});\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst std = @import(\"std\");\nfn foo() u32 {\n    std.log.debug(\"running foo\", .{});\n    return 1;\n}\n\ntest foo {\n    std.debug.print(\"testing foo\\n\", .{});\n    try std.testing.expectEqual(1, foo());\n}\n```\n\n```zig\nfn print(comptime msg: []const u8, args: anytype) void {\n    // ...\n}\nfn main() void {\n    print(\"Staring program\", .{});\n}\n```",
-                    "default": "warn",
-                    "markdownDescription": "## What This Rule Does\nDisallows the use of `std.debug.print`.\n\n`print` statements are great for debugging, but they should be removed\nbefore code gets merged. When you need debug logs in production, use\n`std.log` instead.\n\nThis rule makes a best-effort attempt to ensure `print` calls are actually\nfrom `std.debug.print`. It will not report calls to custom print functions\nif they are defined within the same file. If you are getting false positives\nbecause you import a custom print function, consider disabling this rule on\na file-by-file basis instead of turning it off globally.\n\n### Tests\nBy default, this rule ignores `print`s in test blocks and files. Files are\nconsidered to be a test file if they end with `test.zig`. You may disable\nthis by setting `allow_tests` to `false` in the rule's metadata.\n\n```json\n{\n  \"rules\": {\n    \"no-print\": [\"warn\", { \"allow_tests\": false }]\n  }\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst std = @import(\"std\");\nconst debug = std.debug;\nconst print = std.debug.print;\nfn main() void {\n    std.debug.print(\"This should not be here: {d}\\n\", .{42});\n    debug.print(\"This should not be here: {d}\\n\", .{42});\n    print(\"This should not be here: {d}\\n\", .{42});\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst std = @import(\"std\");\nfn foo() u32 {\n    std.log.debug(\"running foo\", .{});\n    return 1;\n}\n\ntest foo {\n    std.debug.print(\"testing foo\\n\", .{});\n    try std.testing.expectEqual(1, foo());\n}\n```\n\n```zig\nfn print(comptime msg: []const u8, args: anytype) void {\n    // ...\n}\nfn main() void {\n    print(\"Staring program\", .{});\n}\n```",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/Error.Severity"
-                        },
-                        {
-                            "type": "array",
-                            "items": false,
-                            "prefixItems": [
-                                {
-                                    "$ref": "#/definitions/Error.Severity"
-                                },
-                                {
-                                    "$ref": "#/definitions/linter.rules.no_print"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "returned-stack-reference": {
-                    "description": "## What This Rule Does\nChecks for functions that return references to stack-allocated memory.\n\n:::warning\n\nThis rule is still in early development. PRs to improve it are welcome.\n\n:::\n\nIt is illegal to use stack-allocated memory outside of the function that\nallocated it. Once that function returns and the stack is popped, the memory\nis no longer valid and may cause segfaults or undefined behavior.\n\n```zig\nconst std = @import(\"std\");\nfn foo() *u32 {\n  var x: u32 = 1; // x is on the stack\n  return &x;\n}\nfn bar() void {\n  const x = foo();\n  std.debug.print(\"{d}\\n\", .{x}); // crashes\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst std = @import(\"std\");\nfn foo() *u32 {\n  var x: u32 = 1;\n  return &x;\n}\nfn bar() []u32 {\n  var x: [1]u32 = .{1};\n  return x[0..];\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn foo() *u32 {\n  var x = std.heap.page_allocator.create(u32);\n  x.* = 1;\n  return x;\n}\n```",
-                    "default": "off",
-                    "markdownDescription": "## What This Rule Does\nChecks for functions that return references to stack-allocated memory.\n\n:::warning\n\nThis rule is still in early development. PRs to improve it are welcome.\n\n:::\n\nIt is illegal to use stack-allocated memory outside of the function that\nallocated it. Once that function returns and the stack is popped, the memory\nis no longer valid and may cause segfaults or undefined behavior.\n\n```zig\nconst std = @import(\"std\");\nfn foo() *u32 {\n  var x: u32 = 1; // x is on the stack\n  return &x;\n}\nfn bar() void {\n  const x = foo();\n  std.debug.print(\"{d}\\n\", .{x}); // crashes\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst std = @import(\"std\");\nfn foo() *u32 {\n  var x: u32 = 1;\n  return &x;\n}\nfn bar() []u32 {\n  var x: [1]u32 = .{1};\n  return x[0..];\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn foo() *u32 {\n  var x = std.heap.page_allocator.create(u32);\n  x.* = 1;\n  return x;\n}\n```",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/Error.Severity"
-                        },
-                        {
-                            "type": "array",
-                            "items": false,
-                            "prefixItems": [
-                                {
-                                    "$ref": "#/definitions/Error.Severity"
-                                },
-                                {
-                                    "$ref": "#/definitions/linter.rules.returned_stack_reference"
-                                }
-                            ]
-                        }
-                    ]
-                },
                 "duplicate-case": {
                     "description": "## What This Rule Does\nChecks for duplicate cases in switch statements.\n\nThis rule identifies when switch statements have case branches that could\nbe merged together without affecting program behavior. It does _not_ check\nthat the value being switched over is the same; rather it checks whether\nthe target expressions are duplicates.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo() void {\n  const x = switch (1) {\n    1 => 1,\n    else => 1,\n  };\n}\n\nfn bar(y: u32) void {\n  const x = switch (y) {\n    1 => y + 1,\n    2 => 1 + y,\n    else => y * 2,\n  };\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nfn foo() void {\n  const x = switch (1) {\n    1 => 1,\n    2 => 2,\n  };\n}\n\nfn bar(y: u32) void {\n  const x = switch (y) {\n    1 => y + 1,\n    2 => y * 2,\n    3 => y - 1,\n  };\n}\n```",
                     "default": "off",
@@ -450,54 +582,8 @@
                         }
                     ]
                 },
-                "unsafe-undefined": {
-                    "description": "## What This Rule Does\nDisallows initializing or assigning variables to `undefined`.\n\nReading uninitialized memory is one of the most common sources of undefined\nbehavior. While debug builds come with runtime safety checks for `undefined`\naccess, they are otherwise undetectable and will not cause panics in release\nbuilds.\n\n### Allowed Scenarios\n\nThere are some cases where using `undefined` makes sense, such as array\ninitialization. Some cases are implicitly allowed, but others should be\ncommunicated to other programmers via a safety comment. Adding `SAFETY:\n[reason]` before the line using `undefined` will not trigger a rule\nviolation.\n\n```zig\n// SAFETY: foo is written to by `initializeFoo`, so `undefined` is never\n// read.\nvar foo: u32 = undefined\ninitializeFoo(&foo);\n\n// SAFETY: this covers the entire initialization\nconst bar: Bar = .{\n  .a = undefined,\n  .b = undefined,\n};\n```\n\n:::info\nObviously unsafe usages of `undefined`, such `x == undefined`, are not\nallowed even in these exceptions.\n:::\n\n#### Arrays\nArray-typed variable declarations may be initialized to undefined.\nArray-typed container fields with `undefined` as a default value will still\ntrigger a violation.\n\n```zig\n// arrays may be set to undefined without a safety comment\nvar arr: [10]u8 = undefined;\n@memset(&arr, 0);\n\n// This is not allowed\nconst Foo = struct {\n  foo: [4]u32 = undefined\n};\n```\n\n#### Whitelisting Types\nYou may whitelist specific types that are allowed to be initialized to `undefined`.\nAny variable with this type will not have a violation triggered, as long as\nthe type is obvious to ZLint's semantic analyzer. By default the whitelist\ncontains `ThreadPool`/`Thread.Pool` from `std.Thread.Pool`\n\n```zig\n// \"unsafe-undefined\": [\"error\", { \"allow_types\": [\"CustomBuffer\"] }]\nconst CustomBuffer = [4096]u8;\nvar buf: CustomBuffer = undefined; // ok\n```\n\n:::warning\nZLint does not have a type checker yet, so implicit struct initializations\nwill not be ignored.\n:::\n\n#### Destructors\nInvalidating freed pointers/data by setting it to `undefined` is helpful for\nfinding use-after-free bugs. Using `undefined` in destructors will not trigger\na violation, unless it is obviously unsafe (e.g. in a comparison).\n\n```zig\nconst std = @import(\"std\");\nconst Foo = struct {\n  data: []u8,\n  pub fn init(allocator: std.mem.Allocator) !Foo {\n     const data = try allocator.alloc(u8, 8);\n     return .{ .data = data };\n  }\n  pub fn deinit(self: *Foo, allocator: std.mem.Allocator) void {\n    allocator.free(self.data);\n    self.* = undefined; // safe\n  }\n};\n```\n\nA method is considered a destructor if it is named\n- `deinit`\n- `destroy`\n- `reset`\n\n#### `test` blocks\nAll usages of `undefined` in `test` blocks are allowed. Code that isn't safe\nwill be caught by the test runner.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst x = undefined;\n\n// Consumers of `Foo` should be forced to initialize `x`.\nconst Foo = struct {\n  x: *u32 = undefined,\n};\n\nvar y: *u32 = allocator.create(u32);\ny.* = undefined;\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst Foo = struct {\n  x: *u32,\n\n  fn init(allocator: *std.mem.Allocator, value: u32) void {\n    self.x = allocator.create(u32);\n    self.x.* = value;\n  }\n\n  // variables may be re-assigned to `undefined` in destructors\n  fn deinit(self: *Foo, alloc: std.mem.Allocator) void {\n    alloc.destroy(self.x);\n    self.x = undefined;\n  }\n};\n\ntest Foo {\n  // Allowed. If this is truly unsafe, it will be caught by the test.\n  var foo: Foo = undefined;\n  // ...\n}\n```",
-                    "default": "warn",
-                    "markdownDescription": "## What This Rule Does\nDisallows initializing or assigning variables to `undefined`.\n\nReading uninitialized memory is one of the most common sources of undefined\nbehavior. While debug builds come with runtime safety checks for `undefined`\naccess, they are otherwise undetectable and will not cause panics in release\nbuilds.\n\n### Allowed Scenarios\n\nThere are some cases where using `undefined` makes sense, such as array\ninitialization. Some cases are implicitly allowed, but others should be\ncommunicated to other programmers via a safety comment. Adding `SAFETY:\n[reason]` before the line using `undefined` will not trigger a rule\nviolation.\n\n```zig\n// SAFETY: foo is written to by `initializeFoo`, so `undefined` is never\n// read.\nvar foo: u32 = undefined\ninitializeFoo(&foo);\n\n// SAFETY: this covers the entire initialization\nconst bar: Bar = .{\n  .a = undefined,\n  .b = undefined,\n};\n```\n\n:::info\nObviously unsafe usages of `undefined`, such `x == undefined`, are not\nallowed even in these exceptions.\n:::\n\n#### Arrays\nArray-typed variable declarations may be initialized to undefined.\nArray-typed container fields with `undefined` as a default value will still\ntrigger a violation.\n\n```zig\n// arrays may be set to undefined without a safety comment\nvar arr: [10]u8 = undefined;\n@memset(&arr, 0);\n\n// This is not allowed\nconst Foo = struct {\n  foo: [4]u32 = undefined\n};\n```\n\n#### Whitelisting Types\nYou may whitelist specific types that are allowed to be initialized to `undefined`.\nAny variable with this type will not have a violation triggered, as long as\nthe type is obvious to ZLint's semantic analyzer. By default the whitelist\ncontains `ThreadPool`/`Thread.Pool` from `std.Thread.Pool`\n\n```zig\n// \"unsafe-undefined\": [\"error\", { \"allow_types\": [\"CustomBuffer\"] }]\nconst CustomBuffer = [4096]u8;\nvar buf: CustomBuffer = undefined; // ok\n```\n\n:::warning\nZLint does not have a type checker yet, so implicit struct initializations\nwill not be ignored.\n:::\n\n#### Destructors\nInvalidating freed pointers/data by setting it to `undefined` is helpful for\nfinding use-after-free bugs. Using `undefined` in destructors will not trigger\na violation, unless it is obviously unsafe (e.g. in a comparison).\n\n```zig\nconst std = @import(\"std\");\nconst Foo = struct {\n  data: []u8,\n  pub fn init(allocator: std.mem.Allocator) !Foo {\n     const data = try allocator.alloc(u8, 8);\n     return .{ .data = data };\n  }\n  pub fn deinit(self: *Foo, allocator: std.mem.Allocator) void {\n    allocator.free(self.data);\n    self.* = undefined; // safe\n  }\n};\n```\n\nA method is considered a destructor if it is named\n- `deinit`\n- `destroy`\n- `reset`\n\n#### `test` blocks\nAll usages of `undefined` in `test` blocks are allowed. Code that isn't safe\nwill be caught by the test runner.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst x = undefined;\n\n// Consumers of `Foo` should be forced to initialize `x`.\nconst Foo = struct {\n  x: *u32 = undefined,\n};\n\nvar y: *u32 = allocator.create(u32);\ny.* = undefined;\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst Foo = struct {\n  x: *u32,\n\n  fn init(allocator: *std.mem.Allocator, value: u32) void {\n    self.x = allocator.create(u32);\n    self.x.* = value;\n  }\n\n  // variables may be re-assigned to `undefined` in destructors\n  fn deinit(self: *Foo, alloc: std.mem.Allocator) void {\n    alloc.destroy(self.x);\n    self.x = undefined;\n  }\n};\n\ntest Foo {\n  // Allowed. If this is truly unsafe, it will be caught by the test.\n  var foo: Foo = undefined;\n  // ...\n}\n```",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/Error.Severity"
-                        },
-                        {
-                            "type": "array",
-                            "items": false,
-                            "prefixItems": [
-                                {
-                                    "$ref": "#/definitions/Error.Severity"
-                                },
-                                {
-                                    "$ref": "#/definitions/linter.rules.unsafe_undefined"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "suppressed-errors": {
-                    "description": "## What This Rule Does\nDisallows suppressing or otherwise mishandling caught errors.\n\nFunctions that return error unions could error during \"normal\" execution.\nIf they didn't, they would not return an error or would panic instead.\n\nThis rule enforces that errors are\n1. Propagated up to callers either implicitly or by returning a new error,\n   ```zig\n   const a = try foo();\n   const b = foo catch |e| {\n       switch (e) {\n           FooError.OutOfMemory => error.OutOfMemory,\n           // ...\n       }\n   }\n   ```\n2. Are inspected and handled to continue normal execution\n   ```zig\n   /// It's fine if users are missing a config file, and open() + err\n   // handling is faster than stat() then open()\n   var config?: Config = openConfig() catch null;\n   ```\n3. Caught and `panic`ed on to provide better crash diagnostics\n   ```zig\n   const str = try allocator.alloc(u8, size) catch @panic(\"Out of memory\");\n   ```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst x = foo() catch {};\nconst y = foo() catch {\n  // comments within empty catch blocks are still considered violations.\n};\n// `unreachable` is for code that will never be reached due to invariants.\nconst y = foo() catch unreachable\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst x = foo() catch @panic(\"foo failed.\");\nconst y = foo() catch {\n  std.debug.print(\"Foo failed.\\n\", .{});\n};\nconst z = foo() catch null;\n// Writer errors may be safely ignored\nwriter.print(\"{}\", .{5}) catch {};\n\n// suppression is allowed in tests\ntest foo {\n  foo() catch {};\n}\n```",
-                    "default": "warn",
-                    "markdownDescription": "## What This Rule Does\nDisallows suppressing or otherwise mishandling caught errors.\n\nFunctions that return error unions could error during \"normal\" execution.\nIf they didn't, they would not return an error or would panic instead.\n\nThis rule enforces that errors are\n1. Propagated up to callers either implicitly or by returning a new error,\n   ```zig\n   const a = try foo();\n   const b = foo catch |e| {\n       switch (e) {\n           FooError.OutOfMemory => error.OutOfMemory,\n           // ...\n       }\n   }\n   ```\n2. Are inspected and handled to continue normal execution\n   ```zig\n   /// It's fine if users are missing a config file, and open() + err\n   // handling is faster than stat() then open()\n   var config?: Config = openConfig() catch null;\n   ```\n3. Caught and `panic`ed on to provide better crash diagnostics\n   ```zig\n   const str = try allocator.alloc(u8, size) catch @panic(\"Out of memory\");\n   ```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst x = foo() catch {};\nconst y = foo() catch {\n  // comments within empty catch blocks are still considered violations.\n};\n// `unreachable` is for code that will never be reached due to invariants.\nconst y = foo() catch unreachable\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst x = foo() catch @panic(\"foo failed.\");\nconst y = foo() catch {\n  std.debug.print(\"Foo failed.\\n\", .{});\n};\nconst z = foo() catch null;\n// Writer errors may be safely ignored\nwriter.print(\"{}\", .{5}) catch {};\n\n// suppression is allowed in tests\ntest foo {\n  foo() catch {};\n}\n```",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/Error.Severity"
-                        },
-                        {
-                            "type": "array",
-                            "items": false,
-                            "prefixItems": [
-                                {
-                                    "$ref": "#/definitions/Error.Severity"
-                                },
-                                {
-                                    "$ref": "#/definitions/linter.rules.suppressed_errors"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "no-return-try": {
-                    "description": "## What This Rule Does\n\nDisallows `return`ing a `try` expression.\n\nReturning an error union directly has the same exact semantics as `try`ing\nit and then returning the result.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst std = @import(\"std\");\n\nfn foo() !void {\n  return error.OutOfMemory;\n}\n\nfn bar() !void {\n  return try foo();\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst std = @import(\"std\");\n\nfn foo() !void {\n  return error.OutOfMemory;\n}\n\nfn bar() !void {\n  errdefer {\n    std.debug.print(\"this still gets printed.\\n\", .{});\n  }\n\n  return foo();\n}\n```",
+                "max-lines-per-function": {
                     "default": "off",
-                    "markdownDescription": "## What This Rule Does\n\nDisallows `return`ing a `try` expression.\n\nReturning an error union directly has the same exact semantics as `try`ing\nit and then returning the result.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nconst std = @import(\"std\");\n\nfn foo() !void {\n  return error.OutOfMemory;\n}\n\nfn bar() !void {\n  return try foo();\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst std = @import(\"std\");\n\nfn foo() !void {\n  return error.OutOfMemory;\n}\n\nfn bar() !void {\n  errdefer {\n    std.debug.print(\"this still gets printed.\\n\", .{});\n  }\n\n  return foo();\n}\n```",
                     "oneOf": [
                         {
                             "$ref": "#/definitions/Error.Severity"
@@ -510,7 +596,7 @@
                                     "$ref": "#/definitions/Error.Severity"
                                 },
                                 {
-                                    "$ref": "#/definitions/linter.rules.no_return_try"
+                                    "$ref": "#/definitions/max_lines_per_function"
                                 }
                             ]
                         }
@@ -533,70 +619,6 @@
                                 },
                                 {
                                     "$ref": "#/definitions/linter.rules.no_public_anytype"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "forbidden-imports": {
-                    "description": "## What This Rule Does\nRestricts imports between source-path patterns.\n\nThis rule is intended for project architecture boundaries. Each boundary\napplies when the importing file matches `source` and the imported `.zig`\nfile matches one of the `forbidden` patterns.\n\n```json\n{\n  \"rules\": {\n    \"forbidden-imports\": [\"error\", {\n      \"rules\": [\n        {\n          \"source\": \"src/ui/**\",\n          \"forbidden\": [\"src/database/**\"]\n        }\n      ]\n    }]\n  }\n}\n```\n\nPatterns are resolved relative to the current working directory. Build\nprovided module imports such as `@import(\"database\")` are ignored because\ntheir source path is not available to a source-level rule.",
-                    "default": "off",
-                    "markdownDescription": "## What This Rule Does\nRestricts imports between source-path patterns.\n\nThis rule is intended for project architecture boundaries. Each boundary\napplies when the importing file matches `source` and the imported `.zig`\nfile matches one of the `forbidden` patterns.\n\n```json\n{\n  \"rules\": {\n    \"forbidden-imports\": [\"error\", {\n      \"rules\": [\n        {\n          \"source\": \"src/ui/**\",\n          \"forbidden\": [\"src/database/**\"]\n        }\n      ]\n    }]\n  }\n}\n```\n\nPatterns are resolved relative to the current working directory. Build\nprovided module imports such as `@import(\"database\")` are ignored because\ntheir source path is not available to a source-level rule.",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/Error.Severity"
-                        },
-                        {
-                            "type": "array",
-                            "items": false,
-                            "prefixItems": [
-                                {
-                                    "$ref": "#/definitions/Error.Severity"
-                                },
-                                {
-                                    "$ref": "#/definitions/linter.rules.forbidden_imports"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "max-lines-per-function": {
-                    "default": "off",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/Error.Severity"
-                        },
-                        {
-                            "type": "array",
-                            "items": false,
-                            "prefixItems": [
-                                {
-                                    "$ref": "#/definitions/Error.Severity"
-                                },
-                                {
-                                    "$ref": "#/definitions/max_lines_per_function"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "must-return-ref": {
-                    "description": "## What This Rule Does\nDisallows returning copies of types that store a `capacity`.\n\nZig does not have move semantics. Returning a value by value copies it.\nReturning a copy of a struct's field that records how much memory it has\nallocated can easily lead to memory leaks.\n\n```zig\nconst std = @import(\"std\");\npub const Foo = struct {\n  list: std.array_list.Managed(u32),\n  pub fn getList(self: *Foo) std.array_list.Managed(u32) {\n      return self.list;\n  }\n};\n\npub fn main() !void {\n  var foo: Foo = .{\n    .list = try std.array_list.Managed(u32).init(std.heap.page_allocator)\n  };\n  defer foo.list.deinit();\n  var list = foo.getList();\n  try list.append(1); // leaked!\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(self: *Foo) std.array_list.Managed(u32) {\n  return self.list;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\n// pass by reference\nfn foo(self: *Foo) *std.array_list.Managed(u32) {\n  return &self.list;\n}\n\n// new instances are fine\nfn foo() ArenaAllocator {\n  return std.mem.ArenaAllocator.init(std.heap.page_allocator);\n}\n```",
-                    "default": "warn",
-                    "markdownDescription": "## What This Rule Does\nDisallows returning copies of types that store a `capacity`.\n\nZig does not have move semantics. Returning a value by value copies it.\nReturning a copy of a struct's field that records how much memory it has\nallocated can easily lead to memory leaks.\n\n```zig\nconst std = @import(\"std\");\npub const Foo = struct {\n  list: std.array_list.Managed(u32),\n  pub fn getList(self: *Foo) std.array_list.Managed(u32) {\n      return self.list;\n  }\n};\n\npub fn main() !void {\n  var foo: Foo = .{\n    .list = try std.array_list.Managed(u32).init(std.heap.page_allocator)\n  };\n  defer foo.list.deinit();\n  var list = foo.getList();\n  try list.append(1); // leaked!\n}\n```\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(self: *Foo) std.array_list.Managed(u32) {\n  return self.list;\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\n// pass by reference\nfn foo(self: *Foo) *std.array_list.Managed(u32) {\n  return &self.list;\n}\n\n// new instances are fine\nfn foo() ArenaAllocator {\n  return std.mem.ArenaAllocator.init(std.heap.page_allocator);\n}\n```",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/Error.Severity"
-                        },
-                        {
-                            "type": "array",
-                            "items": false,
-                            "prefixItems": [
-                                {
-                                    "$ref": "#/definitions/Error.Severity"
-                                },
-                                {
-                                    "$ref": "#/definitions/linter.rules.must_return_ref"
                                 }
                             ]
                         }
@@ -729,6 +751,21 @@
             "title": "must-return-ref config",
             "properties": {}
         },
+        "linter.rules.no_return_try": {
+            "type": "object",
+            "title": "no-return-try config",
+            "properties": {}
+        },
+        "linter.rules.no_unresolved": {
+            "type": "object",
+            "title": "no-unresolved config",
+            "properties": {}
+        },
+        "linter.rules.returned_stack_reference": {
+            "type": "object",
+            "title": "returned-stack-reference config",
+            "properties": {}
+        },
         "max_lines_per_function": {
             "type": "object",
             "title": "max-lines-per-function config",
@@ -747,21 +784,6 @@
                     "maximum": 4294967295
                 }
             }
-        },
-        "linter.rules.no_return_try": {
-            "type": "object",
-            "title": "no-return-try config",
-            "properties": {}
-        },
-        "linter.rules.no_unresolved": {
-            "type": "object",
-            "title": "no-unresolved config",
-            "properties": {}
-        },
-        "linter.rules.returned_stack_reference": {
-            "type": "object",
-            "title": "returned-stack-reference config",
-            "properties": {}
         },
         "linter.rules.avoid_as": {
             "type": "object",
@@ -815,6 +837,11 @@
         "linter.rules.no_public_mutable_global": {
             "type": "object",
             "title": "no-public-mutable-global config",
+            "properties": {}
+        },
+        "linter.rules.no_else_after_return": {
+            "type": "object",
+            "title": "no-else-after-return config",
             "properties": {}
         },
         "max_depth": {

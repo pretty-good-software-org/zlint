@@ -21,3 +21,4 @@ pub const DuplicateCase = @import("./rules/duplicate_case.zig");
 pub const ForbiddenImports = @import("./rules/forbidden_imports.zig");
 pub const NoPublicMutableGlobal = @import("./rules/no_public_mutable_global.zig");
 pub const NoPublicAnytype = @import("./rules/no_public_anytype.zig");
+pub const NoElseAfterReturn = @import("./rules/no_else_after_return.zig");

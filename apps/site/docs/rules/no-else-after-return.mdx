@@ -1,0 +1,106 @@
+---
+rule: '{"name":"no-else-after-return","category":"pedantic","default":"off","fix":{"kind":"none","dangerous":false}}'
+---
+
+# `no-else-after-return`
+
+<RuleBanner category="pedantic" default="off" />
+
+## What This Rule Does
+
+Disallows `else` branches attached to an `if` branch that never falls
+through. When the `if` branch always `return`s, `break`s, `continue`s, or
+otherwise stops running the enclosing block, the `else` body already only
+runs when the condition was false. Keeping it indents the rest of the
+function for nothing.
+
+A branch never falls through when it ends in `return`, `break`, `continue`,
+`unreachable`, `@panic`, or `@compileError`, or when it is a block, an
+`if`/`else`, or a `switch` whose every path does the same.
+
+### Allowed scenarios
+
+This rule only fires on `if` statements whose value is discarded. It leaves
+alone:
+
+- `if` expressions, where `else` supplies the value of the false branch.
+- `else |err|` branches, which bind the error payload of an error union and
+  cannot be un-indented without rewriting the `if` into a `catch`.
+- `while`/`for` `else` clauses, which run when the loop finishes without
+  `break` rather than when a condition is false.
+- `else` bodies holding a top-level `defer` or `errdefer`, because
+  un-indenting one delays it to the end of the enclosing block.
+
+Branches ending in a loop, a labeled block, or a labeled `switch` count as
+falling through: `break :label` and `continue :label` resume inside the
+enclosing block rather than leaving it.
+
+:::info
+This rule reports but does not fix. Un-indenting an `else` that declares a
+name also declared later in the enclosing block is a redeclaration error,
+so keep the braces (or rename) in that case.
+:::
+
+## Examples
+
+Examples of **incorrect** code for this rule:
+
+```zig
+fn abs(x: i32) i32 {
+    if (x < 0) {
+        return -x;
+    } else {
+        return x;
+    }
+}
+
+fn countNonZero(items: []const u8) usize {
+    var n: usize = 0;
+    for (items) |item| {
+        if (item == 0) {
+            continue;
+        } else {
+            n += 1;
+        }
+    }
+    return n;
+}
+```
+
+Examples of **correct** code for this rule:
+
+```zig
+fn abs(x: i32) i32 {
+    if (x < 0) return -x;
+    return x;
+}
+
+// `else` supplies the value of the false branch
+fn sign(x: i32) i32 {
+    return if (x < 0) -1 else 1;
+}
+
+// `else |err|` binds the error payload
+fn lenOrZero(path: []const u8) usize {
+    if (statSize(path)) |size| {
+        return size;
+    } else |_| {
+        return 0;
+    }
+}
+
+// the `if` branch falls through
+fn bump(x: i32) i32 {
+    var y = x;
+    if (y < 0) {
+        y = 0;
+    } else {
+        y += 1;
+    }
+    return y;
+}
+```
+
+## Configuration
+
+This rule has no configuration.
