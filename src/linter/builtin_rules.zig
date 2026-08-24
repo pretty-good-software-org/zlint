@@ -18,3 +18,4 @@ pub const UnusedDecls = @import("./rules/unused_decls.zig");
 pub const UselessErrorReturn = @import("./rules/useless_error_return.zig");
 pub const DuplicateCase = @import("./rules/duplicate_case.zig");
 pub const ForbiddenImports = @import("./rules/forbidden_imports.zig");
+pub const NoEmptyBlock = @import("./rules/no_empty_block.zig");

@@ -1,0 +1,146 @@
+  𝙭 no-empty-block: This `if` branch is empty.
+   ╭─[no-empty-block.zig:2:10]
+ 1 │ fn foo(x: bool) void {
+ 2 │   if (x) {}
+   ·          ─┬─
+   ·           ╰── this block is empty
+ 3 │ }
+   ╰────
+  help: Invert the condition and keep only the `else` branch, or leave a comment saying why nothing happens here.
+
+  𝙭 no-empty-block: This `else` branch is empty.
+   ╭─[no-empty-block.zig:4:10]
+ 3 │     bar();
+ 4 │   } else {}
+   ·          ─┬─
+   ·           ╰── this block is empty
+ 5 │ }
+   ╰────
+  help: Remove the `else` branch, or leave a comment saying why nothing happens here.
+
+  𝙭 no-empty-block: This `while` loop has an empty body.
+   ╭─[no-empty-block.zig:2:13]
+ 1 │ fn foo(x: bool) void {
+ 2 │   while (x) {}
+   ·             ─┬─
+   ·              ╰── this block is empty
+ 3 │ }
+   ╰────
+  help: Remove the loop, or leave a comment saying why it runs for its side effects alone.
+
+  𝙭 no-empty-block: This `while` loop has an empty `else` branch.
+   ╭─[no-empty-block.zig:4:10]
+ 3 │     break;
+ 4 │   } else {}
+   ·          ─┬─
+   ·           ╰── this block is empty
+ 5 │ }
+   ╰────
+  help: Remove the `else` branch, or leave a comment saying why nothing happens here.
+
+  𝙭 no-empty-block: This `while` loop has an empty `else` branch.
+   ╭─[no-empty-block.zig:5:10]
+ 4 │     break;
+ 5 │   } else {}
+   ·          ─┬─
+   ·           ╰── this block is empty
+ 6 │ }
+   ╰────
+  help: Remove the `else` branch, or leave a comment saying why nothing happens here.
+
+  𝙭 no-empty-block: This `for` loop has an empty body.
+   ╭─[no-empty-block.zig:2:19]
+ 1 │ fn foo(items: []const u8) void {
+ 2 │   for (items) |_| {}
+   ·                   ─┬─
+   ·                    ╰── this block is empty
+ 3 │ }
+   ╰────
+  help: Remove the loop, or leave a comment saying why it runs for its side effects alone.
+
+  𝙭 no-empty-block: This `for` loop has an empty `else` branch.
+   ╭─[no-empty-block.zig:4:10]
+ 3 │     break;
+ 4 │   } else {}
+   ·          ─┬─
+   ·           ╰── this block is empty
+ 5 │ }
+   ╰────
+  help: Remove the `else` branch, or leave a comment saying why nothing happens here.
+
+  𝙭 no-empty-block: This `defer` runs an empty block.
+   ╭─[no-empty-block.zig:2:9]
+ 1 │ fn foo() void {
+ 2 │   defer {}
+   ·         ─┬─
+   ·          ╰── this block is empty
+ 3 │ }
+   ╰────
+  help: Remove the `defer`; it does nothing on scope exit.
+
+  𝙭 no-empty-block: This `errdefer` runs an empty block.
+   ╭─[no-empty-block.zig:2:12]
+ 1 │ fn foo() !void {
+ 2 │   errdefer {}
+   ·            ─┬─
+   ·             ╰── this block is empty
+ 3 │ }
+   ╰────
+  help: Remove the `errdefer`; it does nothing when an error is returned.
+
+  𝙭 no-empty-block: This `errdefer` runs an empty block.
+   ╭─[no-empty-block.zig:2:16]
+ 1 │ fn foo() !void {
+ 2 │   errdefer |e| {}
+   ·                ─┬─
+   ·                 ╰── this block is empty
+ 3 │ }
+   ╰────
+  help: Remove the `errdefer`; it does nothing when an error is returned.
+
+  𝙭 no-empty-block: This test has an empty body.
+   ╭─[no-empty-block.zig:1:6]
+ 1 │ test {}
+   ·      ─┬─
+   ·       ╰── this block is empty
+   ╰────
+  help: Assert something, or remove the test.
+
+  𝙭 no-empty-block: This test has an empty body.
+   ╭─[no-empty-block.zig:1:24]
+ 1 │ test "not written yet" {}
+   ·                        ─┬─
+   ·                         ╰── this block is empty
+   ╰────
+  help: Assert something, or remove the test.
+
+  𝙭 no-empty-block: This test has an empty body.
+   ╭─[no-empty-block.zig:2:10]
+ 1 │ fn foo() void {}
+ 2 │ test foo {}
+   ·          ─┬─
+   ·           ╰── this block is empty
+   ╰────
+  help: Assert something, or remove the test.
+
+  𝙭 no-empty-block: This `if` branch is empty.
+   ╭─[no-empty-block.zig:3:17]
+ 2 │   switch (x) {
+ 3 │     0 => if (y) {},
+   ·                 ─┬─
+   ·                  ╰── this block is empty
+ 4 │     else => {},
+   ╰────
+  help: Invert the condition and keep only the `else` branch, or leave a comment saying why nothing happens here.
+
+  𝙭 no-empty-block: This `if` branch is empty.
+   ╭─[no-empty-block.zig:2:10]
+ 1 │ fn foo(x: bool) void {
+ 2 │ ╭─▶   if (x) {
+ 3 │ │   
+ 4 │ ├─▶   }
+   · ╰──── this block is empty
+ 5 │ }
+   ╰────
+  help: Invert the condition and keep only the `else` branch, or leave a comment saying why nothing happens here.
+

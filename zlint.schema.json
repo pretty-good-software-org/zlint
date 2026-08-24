@@ -252,6 +252,28 @@
                         }
                     ]
                 },
+                "no-empty-block": {
+                    "description": "## What This Rule Does\nChecks for empty blocks (`{}`) attached to constructs that do nothing\nwithout a body.\n\nAn empty `if` branch, loop body, or `defer` is either an unfinished edit or\na roundabout way of saying something the code could say directly. Deleting\nthe construct, or inverting the condition that guards it, leaves less for\nthe next reader to puzzle over.\n\nA block is empty when it holds no statements *and* no comments. The\nfollowing constructs are checked:\n\n- `if` and `else` branches\n- `while` and `for` bodies, and their `else` branches\n- `defer` and `errdefer` bodies\n- `test` bodies\n\n### Allowed Scenarios\nZig leans on empty blocks in places where they carry meaning, so this rule\nleaves them alone:\n\n- **Function bodies.** A no-op body is how a function satisfies a callback\n  or interface signature, as in `fn deinit(_: *Self) void {}`.\n- **`switch` prongs.** Exhaustive switches need a prong per case, and\n  `=> {}` is the idiomatic way to spell \"nothing to do here\".\n- **`catch` blocks and `else |err| {}`.** Both swallow an error, which is\n  `suppressed-errors`' call to make rather than this rule's.\n- **`while` loops with a continue expression.** In\n  `while (c) : (i += 1) {}` the per-iteration work lives in the continue\n  expression, so the loop does something without a body.\n- **Branches producing a value.** When the other branch holds a bare\n  expression, as in `const h = if (store_hash) hashKey(key) else {};`, the\n  `{}` is the `void` value and cannot be removed.\n- **Blocks containing a comment.** A comment records why the block is\n  empty, which is exactly the intent this rule asks for. Use one to keep a\n  deliberate no-op, such as a loop that exists only to drain an iterator.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(x: bool, items: []const u8) void {\n    if (x) {}\n    while (x) {}\n    for (items) |_| {}\n    defer {}\n}\n\ntest \"not written yet\" {}\n```\n\nExamples of **correct** code for this rule:\n```zig\n// a no-op body satisfies the callback signature\nfn onEvent(_: u32) void {}\n\nfn foo(x: u8, it: *Iterator) void {\n    switch (x) {\n        // an explicit no-op prong keeps the switch exhaustive\n        0 => {},\n        else => bar(),\n    }\n    while (it.next()) |_| {\n        // drain the iterator; the values are not needed\n    }\n}\n```",
+                    "default": "off",
+                    "markdownDescription": "## What This Rule Does\nChecks for empty blocks (`{}`) attached to constructs that do nothing\nwithout a body.\n\nAn empty `if` branch, loop body, or `defer` is either an unfinished edit or\na roundabout way of saying something the code could say directly. Deleting\nthe construct, or inverting the condition that guards it, leaves less for\nthe next reader to puzzle over.\n\nA block is empty when it holds no statements *and* no comments. The\nfollowing constructs are checked:\n\n- `if` and `else` branches\n- `while` and `for` bodies, and their `else` branches\n- `defer` and `errdefer` bodies\n- `test` bodies\n\n### Allowed Scenarios\nZig leans on empty blocks in places where they carry meaning, so this rule\nleaves them alone:\n\n- **Function bodies.** A no-op body is how a function satisfies a callback\n  or interface signature, as in `fn deinit(_: *Self) void {}`.\n- **`switch` prongs.** Exhaustive switches need a prong per case, and\n  `=> {}` is the idiomatic way to spell \"nothing to do here\".\n- **`catch` blocks and `else |err| {}`.** Both swallow an error, which is\n  `suppressed-errors`' call to make rather than this rule's.\n- **`while` loops with a continue expression.** In\n  `while (c) : (i += 1) {}` the per-iteration work lives in the continue\n  expression, so the loop does something without a body.\n- **Branches producing a value.** When the other branch holds a bare\n  expression, as in `const h = if (store_hash) hashKey(key) else {};`, the\n  `{}` is the `void` value and cannot be removed.\n- **Blocks containing a comment.** A comment records why the block is\n  empty, which is exactly the intent this rule asks for. Use one to keep a\n  deliberate no-op, such as a loop that exists only to drain an iterator.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo(x: bool, items: []const u8) void {\n    if (x) {}\n    while (x) {}\n    for (items) |_| {}\n    defer {}\n}\n\ntest \"not written yet\" {}\n```\n\nExamples of **correct** code for this rule:\n```zig\n// a no-op body satisfies the callback signature\nfn onEvent(_: u32) void {}\n\nfn foo(x: u8, it: *Iterator) void {\n    switch (x) {\n        // an explicit no-op prong keeps the switch exhaustive\n        0 => {},\n        else => bar(),\n    }\n    while (it.next()) |_| {\n        // drain the iterator; the values are not needed\n    }\n}\n```",
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/Error.Severity"
+                        },
+                        {
+                            "type": "array",
+                            "items": false,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/definitions/Error.Severity"
+                                },
+                                {
+                                    "$ref": "#/definitions/linter.rules.no_empty_block"
+                                }
+                            ]
+                        }
+                    ]
+                },
                 "no-catch-return": {
                     "description": "## What This Rule Does\nDisallows `catch` blocks that immediately return the caught error.\n\nCatch blocks that do nothing but return their error can and should be\nreplaced with a `try` statement. This rule allows for `catch`es that\nhave side effects such as printing the error or switching over it.\n\n## Examples\n\nExamples of **incorrect** code for this rule:\n```zig\nfn foo() !void {\n  riskyOp() catch |e| return e;\n  riskyOp() catch |e| { return e; };\n}\n```\n\nExamples of **correct** code for this rule:\n```zig\nconst std = @import(\"std\");\n\nfn foo() !void{\n  try riskyOp();\n}\n\n// re-throwing with side effects is fine\nfn bar() !void {\n  riskyOp() catch |e| {\n    std.debug.print(\"Error: {any}\\n\", .{e});\n    return e;\n  };\n}\n\n// throwing a new error is fine\nfn baz() !void {\n  riskyOp() catch |e| return error.OutOfMemory;\n}\n```",
                     "default": "warn",
@@ -568,6 +590,11 @@
                 "source",
                 "forbidden"
             ]
+        },
+        "linter.rules.no_empty_block": {
+            "type": "object",
+            "title": "no-empty-block config",
+            "properties": {}
         },
         "complexity": {
             "type": "object",

@@ -1,0 +1,83 @@
+---
+rule: '{"name":"no-empty-block","category":"suspicious","default":"off","fix":{"kind":"none","dangerous":false}}'
+---
+
+# `no-empty-block`
+
+<RuleBanner category="suspicious" default="off" />
+
+## What This Rule Does
+
+Checks for empty blocks (`{}`) attached to constructs that do nothing
+without a body.
+
+An empty `if` branch, loop body, or `defer` is either an unfinished edit or
+a roundabout way of saying something the code could say directly. Deleting
+the construct, or inverting the condition that guards it, leaves less for
+the next reader to puzzle over.
+
+A block is empty when it holds no statements _and_ no comments. The
+following constructs are checked:
+
+- `if` and `else` branches
+- `while` and `for` bodies, and their `else` branches
+- `defer` and `errdefer` bodies
+- `test` bodies
+
+### Allowed Scenarios
+
+Zig leans on empty blocks in places where they carry meaning, so this rule
+leaves them alone:
+
+- **Function bodies.** A no-op body is how a function satisfies a callback
+  or interface signature, as in `fn deinit(_: *Self) void {}`.
+- **`switch` prongs.** Exhaustive switches need a prong per case, and
+  `=> {}` is the idiomatic way to spell "nothing to do here".
+- **`catch` blocks and `else |err| {}`.** Both swallow an error, which is
+  `suppressed-errors`' call to make rather than this rule's.
+- **`while` loops with a continue expression.** In
+  `while (c) : (i += 1) {}` the per-iteration work lives in the continue
+  expression, so the loop does something without a body.
+- **Branches producing a value.** When the other branch holds a bare
+  expression, as in `const h = if (store_hash) hashKey(key) else {};`, the
+  `{}` is the `void` value and cannot be removed.
+- **Blocks containing a comment.** A comment records why the block is
+  empty, which is exactly the intent this rule asks for. Use one to keep a
+  deliberate no-op, such as a loop that exists only to drain an iterator.
+
+## Examples
+
+Examples of **incorrect** code for this rule:
+
+```zig
+fn foo(x: bool, items: []const u8) void {
+    if (x) {}
+    while (x) {}
+    for (items) |_| {}
+    defer {}
+}
+
+test "not written yet" {}
+```
+
+Examples of **correct** code for this rule:
+
+```zig
+// a no-op body satisfies the callback signature
+fn onEvent(_: u32) void {}
+
+fn foo(x: u8, it: *Iterator) void {
+    switch (x) {
+        // an explicit no-op prong keeps the switch exhaustive
+        0 => {},
+        else => bar(),
+    }
+    while (it.next()) |_| {
+        // drain the iterator; the values are not needed
+    }
+}
+```
+
+## Configuration
+
+This rule has no configuration.

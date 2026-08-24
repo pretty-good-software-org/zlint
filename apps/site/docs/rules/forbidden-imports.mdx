@@ -1,0 +1,43 @@
+---
+rule: '{"name":"forbidden-imports","category":"restriction","default":"off","fix":{"kind":"none","dangerous":false}}'
+---
+
+# `forbidden-imports`
+
+<RuleBanner category="restriction" default="off" />
+
+## What This Rule Does
+
+Restricts imports between source-path patterns.
+
+This rule is intended for project architecture boundaries. Each boundary
+applies when the importing file matches `source` and the imported `.zig`
+file matches one of the `forbidden` patterns.
+
+```json
+{
+  "rules": {
+    "forbidden-imports": [
+      "error",
+      {
+        "rules": [
+          {
+            "source": "src/ui/**",
+            "forbidden": ["src/database/**"]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Patterns are resolved relative to the current working directory. Build
+provided module imports such as `@import("database")` are ignored because
+their source path is not available to a source-level rule.
+
+## Configuration
+
+This rule accepts the following options:
+
+- rules: array
