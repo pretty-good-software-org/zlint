@@ -179,6 +179,19 @@ test "countLines treats multiline string contents as code" {
     }));
 }
 
+test "rule enforces a zero-line limit" {
+    var rule_instance = MaxLines{ .max = 0 };
+    var tester = zlint.linter.tester.RuleTester.init(std.testing.allocator, rule_instance.rule());
+    defer tester.deinit();
+
+    const pass = &[_][:0]const u8{};
+    const fail = &[_][:0]const u8{
+        \\const value = 1;
+    };
+
+    try tester.withPass(pass).withFail(fail).run();
+}
+
 test "rule reports files over the limit" {
     var rule_instance = MaxLines{ .max = 2 };
     var tester = zlint.linter.tester.RuleTester.init(std.testing.allocator, rule_instance.rule());
