@@ -84,8 +84,6 @@ fn complexityIncrement(tag: Ast.Node.Tag) u32 {
         .@"for",
         .for_range,
         .@"catch",
-        .bool_and,
-        .bool_or,
         => 1,
         else => 0,
     };
@@ -143,9 +141,12 @@ test "rule handles each supported complexity construct" {
 
     const pass = &[_][:0]const u8{
         \\fn straightLine() void {}
+        \\fn withAnd(first: bool, second: bool) void { _ = first and second; }
+        \\fn withOr(first: bool, second: bool) void { _ = first or second; }
     };
     const fail = &[_][:0]const u8{
         \\fn withIf(value: bool) void { if (value) return; }
+        \\fn withElseIf(value: bool) void { if (value) {} else if (!value) {} }
         \\fn withWhile(value: bool) void { while (value) break; }
         \\fn withFor() void { for ([_]u8{1}) |_| {} }
         \\fn withSwitch(value: u8) void {
@@ -155,8 +156,6 @@ test "rule handles each supported complexity construct" {
         \\    }
         \\}
         \\fn withCatch() void { _ = errorValue() catch return; }
-        \\fn withAnd(first: bool, second: bool) void { _ = first and second; }
-        \\fn withOr(first: bool, second: bool) void { _ = first or second; }
     };
 
     try tester.withPass(pass).withFail(fail).run();
