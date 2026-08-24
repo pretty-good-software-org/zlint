@@ -9,6 +9,7 @@ pub const LineLength = @import("./rules/line_length.zig");
 pub const MustReturnRef = @import("./rules/must_return_ref.zig");
 pub const NoCatchReturn = @import("./rules/no_catch_return.zig");
 pub const NoPrint = @import("./rules/no_print.zig");
+pub const NoRestrictedCalls = @import("./rules/no_restricted_calls.zig");
 pub const NoReturnTry = @import("./rules/no_return_try.zig");
 pub const NoUnresolved = @import("./rules/no_unresolved.zig");
 pub const ReturnedStackReference = @import("./rules/returned_stack_reference.zig");

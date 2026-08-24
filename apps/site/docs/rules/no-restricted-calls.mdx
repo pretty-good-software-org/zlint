@@ -1,0 +1,124 @@
+---
+rule: '{"name":"no-restricted-calls","category":"restriction","default":"off","fix":{"kind":"none","dangerous":false}}'
+---
+
+# `no-restricted-calls`
+
+<RuleBanner category="restriction" default="off" />
+
+## What This Rule Does
+
+Disallows calls to function paths listed in this rule's configuration.
+
+This rule ships with an empty list, so it reports nothing until you
+configure it. It is a policy hook, not an opinion about which functions are
+dangerous: teams use it to ban whatever their codebase should not call, such
+as a process-killing helper in library code or a deprecated internal API.
+
+### Configuration
+
+`paths` holds the call paths to restrict, written the way they are spelled
+at the call site after aliases are followed.
+
+```json
+{
+  "rules": {
+    "no-restricted-calls": [
+      "error",
+      {
+        "paths": ["std.process.exit", "std.time.sleep"]
+      }
+    ]
+  }
+}
+```
+
+### How Call Paths Are Resolved
+
+A call's path is built from the identifiers in its callee expression, joined
+with `.`. `std.process.exit(1)` has the path `std.process.exit`, and
+`exit(1)` has the path `exit`.
+
+Before comparing, `const` aliases are followed to what they were declared
+as, so all three calls below have the path `std.process.exit`:
+
+```zig
+const std = @import("std");
+const process = std.process;
+const exit = std.process.exit;
+
+fn quit() void {
+    std.process.exit(1);
+    process.exit(1);
+    exit(1);
+}
+```
+
+An alias only resolves when it is in scope, so anything that shadows it —
+a parameter, a local, an inner declaration — keeps the name it was written
+with.
+
+:::info
+Paths are matched literally and in full, segment for segment. There is no
+wildcard or glob syntax, so `std.*` restricts a function literally named `*`
+and matches nothing in practice, and restricting `std.debug` does not
+restrict `std.debug.print`.
+:::
+
+### Limitations
+
+ZLint has no type checker, so this rule reasons about names alone. Calls
+whose callee is not a plain dotted path are never reported, which covers
+method calls on values (`list.append(x)`), calls on the result of another
+call (`gpa.allocator().free(p)`), and builtins (`@panic("...")`).
+
+`@import` is followed only for module names, so `@import("std").process.exit(1)`
+resolves to `std.process.exit`, while imports of a file path do not resolve.
+
+## Examples
+
+Examples of **incorrect** code for this rule, given
+`{ "paths": ["std.process.exit"] }`:
+
+```zig
+const std = @import("std");
+fn quit() void {
+    std.process.exit(1);
+}
+```
+
+```zig
+const std = @import("std");
+const exit = std.process.exit;
+fn quit() void {
+    exit(1);
+}
+```
+
+Examples of **correct** code for this rule, given the same configuration:
+
+```zig
+const std = @import("std");
+fn quit() !void {
+    // referencing a restricted path without calling it is allowed
+    const exit = std.process.exit;
+    _ = exit;
+    return error.Quit;
+}
+```
+
+```zig
+const std = @import("std");
+const process = std.process;
+
+// the parameter shadows the alias, so this path is `process.exit`
+fn quit(process: Process) void {
+    process.exit(1);
+}
+```
+
+## Configuration
+
+This rule accepts the following options:
+
+- paths: array
