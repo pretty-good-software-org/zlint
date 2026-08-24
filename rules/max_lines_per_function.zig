@@ -190,6 +190,19 @@ test "countLines treats multiline string contents as code" {
     }));
 }
 
+test "rule enforces a zero-line limit" {
+    var rule_instance = MaxLinesPerFunction{ .max = 0 };
+    var tester = zlint.linter.tester.RuleTester.init(std.testing.allocator, rule_instance.rule());
+    defer tester.deinit();
+
+    const pass = &[_][:0]const u8{};
+    const fail = &[_][:0]const u8{
+        \\fn value() void {}
+    };
+
+    try tester.withPass(pass).withFail(fail).run();
+}
+
 test "rule reports functions over the limit" {
     var rule_instance = MaxLinesPerFunction{ .max = 4 };
     var tester = zlint.linter.tester.RuleTester.init(std.testing.allocator, rule_instance.rule());
