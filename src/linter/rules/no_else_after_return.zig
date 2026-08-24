@@ -7,8 +7,8 @@
 //! function for nothing.
 //!
 //! A branch never falls through when it ends in `return`, `break`, `continue`,
-//! `unreachable`, `@panic`, or `@compileError`, or when it is a block, an
-//! `if`/`else`, or a `switch` whose every path does the same.
+//! `unreachable`, `@panic`, `@compileError`, or `@trap`, or when it is a block,
+//! an `if`/`else`, or a `switch` whose every path does the same.
 //!
 //! ### Allowed scenarios
 //!
