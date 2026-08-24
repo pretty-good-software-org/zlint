@@ -1,0 +1,80 @@
+---
+rule: '{"name":"no-empty-block","category":"suspicious","default":"off","fix":{"kind":"none","dangerous":false}}'
+---
+
+# `no-empty-block`
+
+<RuleBanner category="suspicious" default="off" />
+
+## What This Rule Does
+
+Checks for blocks that contain no statements.
+
+An empty block runs no code. It is nearly always either debris left behind
+when its contents were deleted or a branch someone meant to come back and
+fill in. Either way the next reader has to stop and work out whether the
+emptiness was deliberate.
+
+### Blocks This Rule Ignores
+
+Only blocks in statement position are reported: standalone blocks, branch
+and loop bodies, `defer` and `errdefer` bodies, `comptime` blocks, and test
+bodies. Everywhere else an empty pair of braces is the void value rather
+than a block that runs no code, so it is left alone.
+
+```zig
+fn foo(fixes: []Fix) void {
+    std.sort.insertion(Fix, fixes, {}, lessThan);
+}
+```
+
+Two more positions require a block, and an empty one there is the normal
+way to say "do nothing":
+
+- Function bodies. `fn noop() void {}` is a legitimate stub.
+- Switch prongs. `else => {}` is the only way to give a prong no body.
+
+Swallowed errors such as `foo() catch {}` are reported by the
+`suppressed-errors` rule instead, which knows when suppression is
+acceptable.
+
+A block is also ignored when a comment sits between its braces. Use one to
+record why the block is deliberately empty. A comment trailing the closing
+brace does not count, since it reads as a note on the whole statement.
+
+## Examples
+
+Examples of **incorrect** code for this rule:
+
+```zig
+fn foo(cond: bool) void {
+    if (cond) {}
+
+    while (cond) {}
+
+    defer {}
+
+    {}
+}
+```
+
+Examples of **correct** code for this rule:
+
+```zig
+fn noop() void {}
+
+fn foo(tag: u8, queue: *Queue) void {
+    switch (tag) {
+        1 => noop(),
+        else => {},
+    }
+
+    while (queue.pop()) |_| {
+        // drain whatever is left over
+    }
+}
+```
+
+## Configuration
+
+This rule has no configuration.
